@@ -1,4 +1,4 @@
-<BundleInfo name="ChimeraX-Scenes" version="1.0" package="chimerax.scenes"
+<BundleInfo name="ChimeraX-Scenes" version="0.1" package="chimerax.scenes"
   	    customInit="true" minSessionVersion="1" maxSessionVersion="1">
 
   <!-- Additional information about bundle source -->
