@@ -520,7 +520,7 @@ class Session:
         self.user_colormaps = colors.UserColormaps()
 
         # bundles are initialized later
-        # TODO: scenes need more work
+        # TODO: Make sure this is done from the bundle's initialize method
         # from .scenes import Scenes
         # sess.add_state_manager('scenes', Scenes(sess))
 
@@ -534,10 +534,13 @@ class Session:
         self._state_containers['main_view'] = view
     view = property(_get_view, _set_view)
 
-    # TODO:
-    # @property
-    # def scenes(self):
-    #     return self._state_containers['scenes']
+    def _get_scenes(self):
+        return self._state_containers['scenes']
+
+    def _set_scenes(self, scenes):
+        self._state_containers['scenes'] = scenes
+
+    scenes = property(_get_scenes, _set_scenes)
 
     def reset(self):
         """Reset session to data-less state"""

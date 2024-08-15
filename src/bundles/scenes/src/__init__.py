@@ -36,7 +36,8 @@ class _ScenesBundleAPI(BundleAPI):
     def initialize(session, bundle_info):
         """Install scene manager into existing session"""
         from .manager import SceneManager
-        session.scenes = SceneManager(session, bundle_info)
+        session.scenes = SceneManager(session)
+        return
 
     @staticmethod
     def finish(session, bundle_info):

@@ -23,13 +23,15 @@
 # === UCSF ChimeraX Copyright ===
 
 from chimerax.core.state import StateManager
+
+
 class SceneManager(StateManager):
     """Manager for scenes"""
 
     ADDED, DELETED = trigger_names = ("added", "deleted")
 
-    def __init__(self, session, bundle_info):
-        self.scenes = {} # name -> Scene
+    def __init__(self, session):
+        self.scenes = {}  # name -> Scene
         self.session = session
         from chimerax.core.triggerset import TriggerSet
         self.triggers = TriggerSet()
@@ -43,7 +45,7 @@ class SceneManager(StateManager):
         self.triggers.activate_trigger(self.DELETED, scene_name)
 
     def clear(self):
-        for scene_name in list(self.scene.keys()):
+        for scene_name in list(self.scenes.keys()):
             self.delete_scene(scene_name)
 
     def save_scene(self, scene_name):
