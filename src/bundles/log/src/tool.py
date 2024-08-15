@@ -160,6 +160,12 @@ class Log(ToolInstance, HtmlLog):
                 menu.addAction("Select All", lambda:
                     log_window.page().triggerAction(log_window.page().SelectAll))
                 from Qt.QtGui import QAction
+                show_action = QAction("Raise Log When Logging Occurs", menu)
+                show_action.setCheckable(True)
+                show_action.setChecked(self.tool_instance.settings.show_if_new_content)
+                show_action.triggered.connect(lambda checked, settings=self.tool_instance.settings:
+                    setattr(settings, 'show_if_new_content', checked))
+                menu.addAction(show_action)
                 link_action = QAction("Executable Command Links", menu)
                 link_action.setCheckable(True)
                 link_action.setChecked(self.tool_instance.settings.exec_cmd_links)
@@ -350,6 +356,12 @@ class Log(ToolInstance, HtmlLog):
                 bug = (level == self.LEVEL_BUG)
                 f = lambda self=self, msg=dlg_msg: self.show_error_message(msg, bug=bug)
                 self.session.ui.thread_safe(f)
+            else:
+                # If we're not raising a dialog, at least try to bring the Log to the front
+                # if it is somehow obscured
+                if settings.show_if_new_content:
+                    self.tool_window.shown = True
+
             if not is_html:
                 from html import escape
                 msg = escape(msg)
@@ -357,9 +369,11 @@ class Log(ToolInstance, HtmlLog):
 
             if level == self.LEVEL_ERROR:
                 from chimerax.core.logger import error_text_format
-                msg = error_text_format % msg
+                msg = error_text_format(msg)
             elif level == self.LEVEL_WARNING:
-                msg = '<p style="color:darkorange">' + msg + '</p>'
+                from chimerax.core.colors import scheme_color
+                color = scheme_color('warning')
+                msg = f'<p style="color:{color}">{msg}</p>'
 
             # compact repeated output, e.g. ISOLDE's 'stepto' command
             #

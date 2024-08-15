@@ -28,6 +28,7 @@ in a thread-safe manner.  The UI instance is accessed as session.ui.
 
 from Qt.QtWidgets import QApplication
 from chimerax.core.logger import PlainTextLog
+import site
 import sys
 from contextlib import contextmanager
 from chimerax.core.colors import scheme_color, set_default_color_scheme
@@ -89,7 +90,7 @@ class UI(QApplication):
         To execute a function in a thread-safe manner
        """
 
-    def __init__(self, session):
+    def __init__(self, session, *, color_scheme=None):
         self.is_gui = True
         self.has_graphics = True
         self.main_window = None
@@ -112,12 +113,18 @@ class UI(QApplication):
         from chimerax import app_dirs as ad
         QApplication.__init__(self, [ad.appname])
         import sys
-        if sys.platform == 'win32':
-            self.setStyle('Fusion')
 
-        if self.dark_mode():
-            # TODO: hook up Qt signal to monitor color scheme changes
-            set_default_color_scheme('dark')
+        if color_scheme is None:
+            from Qt.QtCore import Qt
+            if self.styleHints().colorScheme() == Qt.ColorScheme.Dark:
+                color_scheme = 'dark'
+            else:
+                color_scheme = 'light'
+        if color_scheme == 'dark' and sys.platform == 'win32':
+            self.setStyle('Fusion')
+        self.color_scheme = color_scheme
+        set_default_color_scheme(self.color_scheme)
+        # TODO: hook up Qt signal to monitor color scheme changes
 
         redirect_stdio_to_logger(self.session.logger)
         self.redirect_qt_messages()
@@ -459,22 +466,14 @@ class UI(QApplication):
 
     def dark_mode(self):
         from Qt.QtCore import Qt
+        if self.color_scheme is not None:
+            return self.color_scheme == 'dark'
         return self.styleHints().colorScheme() == Qt.ColorScheme.Dark
 
-    def dark_css(self, background=None):
-        if background is None:
-            background = scheme_color('Canvas', scheme='dark')
-        foreground = scheme_color('CanvasText', scheme='dark')
-        link = scheme_color('LinkText', scheme='dark')
-        import textwrap
-        return textwrap.dedent("""
-            @media (prefers-color-scheme: dark) {
-                :root { color-scheme: dark; }
-            }
-            """)
-            #@media (prefers-color-scheme: light) {
-            #    :root { color-scheme: light; }
-            #}
+    def dark_css(self):
+        if not self.dark_mode():
+            return ""
+        return "@media (prefers-color-scheme: dark) { :root { color-scheme: dark; } }"
 
 
 from Qt.QtWidgets import QMainWindow, QStackedWidget, QLabel, QToolButton, QWidget
@@ -1096,7 +1095,7 @@ class MainWindow(QMainWindow, PlainTextLog):
     def _build_status(self):
         from .statusbar import _StatusBar
         self._status_bar = sbar = _StatusBar(self.session)
-        status_color = scheme_color('status')
+        status_color = scheme_color('status', expand=True)
         sbar.status('Welcome to ChimeraX', status_color)
         sb = sbar.widget
         self._global_hide_button = ghb = QToolButton(sb)
@@ -2107,6 +2106,13 @@ def _find_child_menu(w, name):
 def _open_dropped_file(session, path):
     if not path:
         return
+    # Ignore debugpy passing the path to itself to ChimeraX when debugging. This is for some reason
+    # not caught in __main__
+    if any(
+        path == spp + "/debugpy/launcher/../../debugpy"
+        for spp in site.getsitepackages()
+    ):
+        return
     from chimerax.core.commands import run, FileNameArg
     run(session, 'open %s' % FileNameArg.unparse(path))
 
@@ -2677,6 +2683,7 @@ class _Qt:
             self.dock_widget.show()
             #ensure it's on top
             self.dock_widget.raise_()
+            self.dock_widget.activateWindow()
         else:
             self.dock_widget.hide()
 
@@ -3150,7 +3157,7 @@ class SelContactsDialog(QDialog):
             if self.criteria_button_group.checkedButton() == self.buried_button:
                 cmd = "interfaces select %s & ::polymer_type>0 " \
                     "contacting %s & ::polymer_type>0 areaCutoff 0" % (chain_spec1, chain_spec2)
-                if self.what_sel_button.text() == "both":
+                if self.what_sel_button.text().startswith("both"):
                     cmd += " bothSides true"
                 from chimerax.interfaces import residue_area_default
                 buried_residue_area = self.residue_spinbox.value()
