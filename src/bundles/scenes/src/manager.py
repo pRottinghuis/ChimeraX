@@ -73,7 +73,7 @@ class SceneManager(StateManager):
 
     @staticmethod
     def restore_snapshot(session, data):
-        mgr = session.scene
+        mgr = session.scenes
         mgr._ses_restore(data)
         return mgr
 
