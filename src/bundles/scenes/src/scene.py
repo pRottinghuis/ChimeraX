@@ -46,6 +46,10 @@ class Scene(State):
             self.view_data = session_data['main_view']
         # need to save view data and lighting data
 
+    def restore_scene(self):
+        # Add model support here
+        ViewState.restore_snapshot(self.session, self.view_data)
+
     @staticmethod
     def restore_snapshot(session, data):
         return Scene(session, session_data=data)

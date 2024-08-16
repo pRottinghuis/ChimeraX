@@ -29,6 +29,8 @@
 
   <ChimeraXClassifier>ChimeraX :: Command :: scenes scene :: General ::
       Save a scene to the sessions scene manager. </ChimeraXClassifier>
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes restore :: General ::
+    Save a scene to the sessions scene manager. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
