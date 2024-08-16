@@ -54,6 +54,7 @@ class SceneManager(StateManager):
             self.delete_scene(scene_name)
         from .scene import Scene
         self.scenes[scene_name] = Scene(self.session)
+        return
 
     def _remove_models_cb(self, trig_name, models):
         for scene in self.scenes.values():

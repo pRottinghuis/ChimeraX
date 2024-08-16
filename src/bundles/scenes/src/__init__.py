@@ -24,6 +24,7 @@
 
 from chimerax.core.toolshed import BundleAPI
 
+
 class _ScenesBundleAPI(BundleAPI):
 
     @staticmethod
@@ -49,5 +50,6 @@ class _ScenesBundleAPI(BundleAPI):
         # 'register_command' is lazily called when the command is referenced
         from . import cmd
         cmd.register_command(command_name, logger)
+
 
 bundle_api = _ScenesBundleAPI()

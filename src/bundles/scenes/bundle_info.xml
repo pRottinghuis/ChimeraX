@@ -26,6 +26,9 @@
     <PythonClassifier>Development Status :: 2 - Pre-Alpha</PythonClassifier>
     <PythonClassifier>License :: Free for non-commercial use</PythonClassifier>
     <!-- <ChimeraXClassifier>Command :: sequence :: Sequence alignment :: control/open sequence alignments</ChimeraXClassifier> -->
+
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes scene :: General ::
+      Save a scene to the sessions scene manager. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>

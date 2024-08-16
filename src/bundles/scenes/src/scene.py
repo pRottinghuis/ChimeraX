@@ -24,6 +24,8 @@
 
 from chimerax.core.state import State
 from chimerax.core.models import Model
+from chimerax.graphics.gsession import ViewState
+
 
 class Scene(State):
 
@@ -37,8 +39,11 @@ class Scene(State):
                     self.model_data[model] = Model.take_snapshot(model, session, State.SCENE)
                 else:
                     self.model_data[model] = model.take_snapshot(session, State.SCENE)
+            # TODO make sure this is the correct way to do snapshot for view state
+            self.view_data = ViewState.take_snapshot(session.view, session, State.SCENE)
         else:
             self.model_data = session_data['model_data']
+            self.view_data = session_data['main_view']
         # need to save view data and lighting data
 
     @staticmethod
