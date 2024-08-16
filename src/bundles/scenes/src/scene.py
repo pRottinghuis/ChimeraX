@@ -40,15 +40,34 @@ class Scene(State):
                 else:
                     self.model_data[model] = model.take_snapshot(session, State.SCENE)
             # TODO make sure this is the correct way to do snapshot for view state
-            self.view_data = ViewState.take_snapshot(session.view, session, State.SCENE)
+            # See ssave() in Session
+            from chimerax.core.session import _SaveManager
+            mgr = _SaveManager(session, State.SCENE)
+            mgr.discovery({'main_view': session.view})
+            self.view_data = [(name, data) for name, data in mgr.walk()]
+            return
         else:
             self.model_data = session_data['model_data']
             self.view_data = session_data['main_view']
         # need to save view data and lighting data
 
     def restore_scene(self):
-        # Add model support here
-        ViewState.restore_snapshot(self.session, self.view_data)
+        # See ssave() in Session
+        from chimerax.core.session import _RestoreManager
+        mgr = _RestoreManager()
+        for name, data in self.view_data:
+            data = mgr.resolve_references(data)
+            if isinstance(name, str):
+                if name == "main_view":
+                    self.session.main_view = data
+                else:
+                    # TODO other session state managers.
+                    pass
+            else:
+                cls = name.class_of(self.session)
+                sm = self.session.snapshot_methods(cls, instance=False)
+                obj = sm.restore_snapshot(self.session, data)
+                mgr.add_reference(name, obj)
 
     @staticmethod
     def restore_snapshot(session, data):
