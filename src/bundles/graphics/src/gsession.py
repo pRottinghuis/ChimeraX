@@ -160,7 +160,7 @@ class ViewState:
         # everything else is a number, list, or tuple
 
         for view_attr in ViewState.save_attrs:
-            if view_attr in ['camera', 'lighting', 'material', 'silhouettes', 'center_of_rotation_method', 'clip_planes']:
+            if view_attr in ['camera', 'lighting', 'material', 'silhouettes', 'clip_planes']:
                 continue
             if view_attr in scene1 and view_attr in scene2:
                 value1 = scene1[view_attr]
@@ -169,7 +169,7 @@ class ViewState:
                     setattr(view, view_attr, value1 + frac * (value2 - value1))
                 elif isinstance(value1, (list, tuple)):
                     setattr(view, view_attr, [value1[i] + frac * (value2[i] - value1[i]) for i in range(len(value1))])
-                elif isinstance(value1, bool):
+                elif isinstance(value1, (bool, str)):
                     setattr(view, view_attr, value1 if frac < 0.5 else value2)
 
 
