@@ -79,7 +79,7 @@ class Scene(State):
 
         restore_data['material'] = MaterialState.restore_snapshot(self.session, restore_data['material'])
 
-        # The ViewState by default skips resetting the chamera because sesion.restore_options.get('restore camera')
+        # The ViewState by default skips resetting the camera because session.restore_options.get('restore camera')
         # is None. We set it to True, let the camera be restored, and then delete the option so it reads None again in
         # case it is an important option for other parts of the code
         self.session.restore_options['restore camera'] = True
