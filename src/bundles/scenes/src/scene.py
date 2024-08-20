@@ -23,8 +23,9 @@
 # === UCSF ChimeraX Copyright ===
 
 from chimerax.core.state import State
-from chimerax.core.models import Model
-from chimerax.graphics.gsession import ViewState
+from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState
+from chimerax.geometry.psession import PlaceState
+import copy
 
 
 class Scene(State):
@@ -32,42 +33,58 @@ class Scene(State):
     def __init__(self, session, *, session_data=None):
         self.session = session
         if session_data is None:
-            self.model_data = {}
-            for model in session.models:
-                # If derived class does not implement restore_scene, use Model class
-                if model.__class__.restore_scene == Model.restore_scene:
-                    self.model_data[model] = Model.take_snapshot(model, session, State.SCENE)
-                else:
-                    self.model_data[model] = model.take_snapshot(session, State.SCENE)
-            # TODO make sure this is the correct way to do snapshot for view state
-            # See ssave() in Session
-            from chimerax.core.session import _SaveManager
-            mgr = _SaveManager(session, State.SCENE)
-            mgr.discovery({'main_view': session.view})
-            self.view_data = [(name, data) for name, data in mgr.walk()]
-            return
+            self.main_view_data = self.create_main_view_data()
         else:
-            self.model_data = session_data['model_data']
-            self.view_data = session_data['main_view']
+            self.main_view_data = session_data['main_view']
         # need to save view data and lighting data
 
     def restore_scene(self):
-        # See ssave() in Session
-        from chimerax.core.session import _RestoreManager
-        mgr = _RestoreManager()
-        for name, data in self.view_data:
-            data = mgr.resolve_references(data)
-            if isinstance(name, str):
-                if name == "main_view":
-                    self.session.main_view = data
-                else:
-                    # TODO other session state managers.
-                    pass
-            else:
-                cls = name.class_of(self.session)
-                sm = self.session.snapshot_methods(cls, instance=False)
-                obj = sm.restore_snapshot(self.session, data)
-                mgr.add_reference(name, obj)
+        self.restore_main_view_data(self.main_view_data)
+
+    def create_main_view_data(self):
+        main_view = self.session.view
+
+        view_state = self.session.snapshot_methods(main_view)
+        data = view_state.take_snapshot(main_view, self.session, State.SCENE)
+
+        v_camera = main_view.camera
+        camera_state = self.session.snapshot_methods(v_camera)
+        data['camera'] = camera_state.take_snapshot(v_camera, self.session, State.SCENE)
+        c_position = v_camera.position
+        # There is one state manager for any type of camera that handles converting to/from the proper camera class
+        c_position_state = self.session.snapshot_methods(c_position)
+        data['camera']['position'] = c_position_state.take_snapshot(c_position, self.session, State.SCENE)
+
+        v_lighting = main_view.lighting
+        lighting_state = self.session.snapshot_methods(v_lighting)
+        data['lighting'] = lighting_state.take_snapshot(v_lighting, self.session, State.SCENE)
+
+        v_material = main_view.material
+        material_state = self.session.snapshot_methods(v_material)
+        data['material'] = material_state.take_snapshot(v_material, self.session, State.SCENE)
+
+        return data
+
+    def restore_main_view_data(self, data):
+        # We need to be mindful that we convert all nested dicts back into the proper objects
+        # This is a technically a recursive process, but we are doing it manually for now
+        # Also important to realize that data is a reference to a dict we are storing in our scene.
+        # We should not overwrite it
+        restore_data = copy.deepcopy(data)
+
+        restore_data['camera']['position'] = PlaceState.restore_snapshot(self.session, restore_data['camera']['position'])
+        restore_data['camera'] = CameraState.restore_snapshot(self.session, restore_data['camera'])
+
+        restore_data['lighting'] = LightingState.restore_snapshot(self.session, restore_data['lighting'])
+
+        restore_data['material'] = MaterialState.restore_snapshot(self.session, restore_data['material'])
+
+        # The ViewState by default skips resetting the chamera because sesion.restore_options.get('restore camera')
+        # is None. We set it to True, let the camera be restored, and then delete the option so it reads None again in
+        # case it is an important option for other parts of the code
+        self.session.restore_options['restore camera'] = True
+        ViewState.restore_snapshot(self.session, restore_data)
+        del self.session.restore_options['restore camera']
 
     @staticmethod
     def restore_snapshot(session, data):
