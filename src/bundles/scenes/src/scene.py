@@ -31,6 +31,7 @@ import copy
 class Scene(State):
 
     def __init__(self, session, *, session_data=None):
+        self.version = "0"
         self.session = session
         if session_data is None:
             self.main_view_data = self.create_main_view_data()
@@ -88,6 +89,6 @@ class Scene(State):
     def take_snapshot(self, session, flags):
         raise NotImplementedError("Scene saving in sessions not implemented")
         return {
-            'version': 1,
+            'version': self.version,
             'model_data': self.model_data
         }
