@@ -1,4 +1,6 @@
 # vim: set expandtab shiftwidth=4 softtabstop=4:
+import numpy as np
+
 
 # === UCSF ChimeraX Copyright ===
 # Copyright 2022 Regents of the University of California. All rights reserved.
@@ -147,7 +149,26 @@ class ViewState:
         :param frac: Fraction of the way between scene1 and scene2 to interpolate
         """
 
+        # Itterate over all attributes in save_attrs. If they exist in scene 1 and scene 2 interpolate them.
+        # Skip:
+        # camera
+        # lighting
+        # material
+        # silhouettes
+        # center_of_rotation_method
+        # clip_planes and clipping_surface_caps
+        # everything else is a number, list, or tuple
 
+        for view_attr in ViewState.save_attrs:
+            if view_attr in ['camera', 'lighting', 'material', 'silhouettes', 'center_of_rotation_method', 'clip_planes', 'clipping_surface_caps']:
+                continue
+            if view_attr in scene1 and view_attr in scene2:
+                value1 = scene1[view_attr]
+                value2 = scene2[view_attr]
+                if isinstance(value1, (int, float, np.ndarray)):
+                    setattr(view, view_attr, value1 + frac * (value2 - value1))
+                elif isinstance(value1, (list, tuple)):
+                    setattr(view, view_attr, [value1[i] + frac * (value2[i] - value1[i]) for i in range(len(value1))])
 
 
 class CameraState:
