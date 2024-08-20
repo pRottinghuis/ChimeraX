@@ -137,6 +137,18 @@ class ViewState:
     def include_state(view):
         return True
 
+    @staticmethod
+    def interpolate(view, scene1, scene2, frac):
+        """
+        Interpolate view at frac of the way between two scene datasets.
+        :param view: View object to interpolate
+        :param scene1: Starting ViewState scene data
+        :param scene2: Ending ViewState scene data
+        :param frac: Fraction of the way between scene1 and scene2 to interpolate
+        """
+
+
+
 
 class CameraState:
 
