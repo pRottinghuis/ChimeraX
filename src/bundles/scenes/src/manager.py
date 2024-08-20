@@ -23,7 +23,7 @@
 # === UCSF ChimeraX Copyright ===
 
 from chimerax.core.state import StateManager
-from chimerax.core.gsession import ViewState
+from chimerax.graphics.gsession import ViewState
 
 
 class SceneManager(StateManager):

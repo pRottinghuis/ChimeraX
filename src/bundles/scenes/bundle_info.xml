@@ -31,6 +31,8 @@
       Save a scene to the sessions scene manager. </ChimeraXClassifier>
   <ChimeraXClassifier>ChimeraX :: Command :: scenes restore :: General ::
     Save a scene to the sessions scene manager. </ChimeraXClassifier>
+      <ChimeraXClassifier>ChimeraX :: Command :: scenes interpolate :: General ::
+    Interpolate between two scenes. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
