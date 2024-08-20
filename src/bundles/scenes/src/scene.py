@@ -48,20 +48,15 @@ class Scene(State):
         data = view_state.take_snapshot(main_view, self.session, State.SCENE)
 
         v_camera = main_view.camera
-        camera_state = self.session.snapshot_methods(v_camera)
-        data['camera'] = camera_state.take_snapshot(v_camera, self.session, State.SCENE)
+        data['camera'] = CameraState.take_snapshot(v_camera, self.session, State.SCENE)
         c_position = v_camera.position
-        # There is one state manager for any type of camera that handles converting to/from the proper camera class
-        c_position_state = self.session.snapshot_methods(c_position)
-        data['camera']['position'] = c_position_state.take_snapshot(c_position, self.session, State.SCENE)
+        data['camera']['position'] = PlaceState.take_snapshot(c_position, self.session, State.SCENE)
 
         v_lighting = main_view.lighting
-        lighting_state = self.session.snapshot_methods(v_lighting)
-        data['lighting'] = lighting_state.take_snapshot(v_lighting, self.session, State.SCENE)
+        data['lighting'] = LightingState.take_snapshot(v_lighting, self.session, State.SCENE)
 
         v_material = main_view.material
-        material_state = self.session.snapshot_methods(v_material)
-        data['material'] = material_state.take_snapshot(v_material, self.session, State.SCENE)
+        data['material'] = MaterialState.take_snapshot(v_material, self.session, State.SCENE)
 
         return data
 
