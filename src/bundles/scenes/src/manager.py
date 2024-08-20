@@ -23,6 +23,7 @@
 # === UCSF ChimeraX Copyright ===
 
 from chimerax.core.state import StateManager
+from chimerax.core.gsession import ViewState
 
 
 class SceneManager(StateManager):
@@ -62,6 +63,16 @@ class SceneManager(StateManager):
             self.scenes[scene_name].restore_scene()
         return
 
+    def interpolate_scenes(self, scene_name1, scene_name2, fraction):
+        """Interpolate between two scenes"""
+        if scene_name1 in self.scenes and scene_name2 in self.scenes:
+            ViewState.interpolate(
+                self.session.view,
+                self.scenes[scene_name1].main_view_data,
+                self.scenes[scene_name2].main_view_data,
+                fraction
+            )
+        return
 
     def _remove_models_cb(self, trig_name, models):
         for scene in self.scenes.values():
