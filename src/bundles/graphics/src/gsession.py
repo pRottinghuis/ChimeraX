@@ -165,12 +165,9 @@ class ViewState:
             if view_attr in scene1 and view_attr in scene2:
                 value1 = scene1[view_attr]
                 value2 = scene2[view_attr]
-                if isinstance(value1, (int, float, np.ndarray)):
-                    setattr(view, view_attr, value1 + frac * (value2 - value1))
-                elif isinstance(value1, (list, tuple)):
-                    setattr(view, view_attr, [value1[i] + frac * (value2[i] - value1[i]) for i in range(len(value1))])
-                elif isinstance(value1, (bool, str)):
-                    setattr(view, view_attr, value1 if frac < 0.5 else value2)
+                setattr(view, view_attr, frac_lerp(value1, value2, frac))
+
+            # TODO Most likley will need a redraw after this is done. Not sure how to do that yet. Look in restore_snapshot
 
 
 class CameraState:
@@ -443,3 +440,17 @@ class DrawingState:
     @staticmethod
     def reset_state(drawing, session):
         pass
+
+
+def frac_lerp(value1, value2, fraction):
+    """
+    Linear interpolation between two values based on a fraction.
+    Supported Types: int, float, np.ndarray, list, tuple, bool, str
+    """
+    if isinstance(value1, (int, float, np.ndarray)):
+        return value1 + fraction * (value2 - value1)
+    elif isinstance(value1, (list, tuple)):
+        return [value1[i] + fraction * (value2[i] - value1[i]) for i in range(len(value1))]
+    elif isinstance(value1, (bool, str)):
+        # Swap value at threshold
+       return value1 if fraction < 0.5 else value2
