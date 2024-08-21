@@ -1,5 +1,6 @@
 # vim: set expandtab shiftwidth=4 softtabstop=4:
 import numpy as np
+from chimerax.geometry.psession import PlaceState
 
 
 # === UCSF ChimeraX Copyright ===
@@ -211,7 +212,8 @@ class CameraState:
                 # Not currently supporting changing camera type
                 continue
             if camera_attr == 'position':
-                # TODO interpolate camera position
+                setattr(camera, camera_attr, PlaceState.interpolate(camera.position, scene1['position'], scene2['position'], frac))
+                # TODO install chimerax.geometry bundle as edible and test position interpolate.
                 continue
             if camera_attr in scene1 and camera_attr in scene2:
                 value1 = scene1[camera_attr]

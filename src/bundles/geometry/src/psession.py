@@ -37,6 +37,11 @@ class PlaceState:
         p._is_identity = data['_is_identity']
         return p
 
+    @staticmethod
+    def interpolate(p1, p2, fraction):
+        center = (0, 0, 0)
+        return p1.interpolate(p2, center, fraction)
+
 class PlacesState:
     version = 1
 
