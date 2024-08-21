@@ -149,23 +149,16 @@ class ViewState:
         :param frac: Fraction of the way between scene1 and scene2 to interpolate
         """
 
-        # Itterate over all attributes in save_attrs. If they exist in scene 1 and scene 2 interpolate them.
-        # Skip:
-        # camera
-        # lighting
-        # material
-        # silhouettes
-        # center_of_rotation_method
-        # clip_planes and clipping_surface_caps
-        # everything else is a number, list, or tuple
-
         for view_attr in ViewState.save_attrs:
-            if view_attr in ['camera', 'lighting', 'material', 'silhouettes', 'clip_planes']:
+            if view_attr in ['lighting', 'material', 'silhouettes', 'clip_planes']:
                 continue
             if view_attr in scene1 and view_attr in scene2:
-                value1 = scene1[view_attr]
-                value2 = scene2[view_attr]
-                setattr(view, view_attr, frac_lerp(value1, value2, frac))
+                if view_attr == 'camera':
+                    CameraState.interpolate(view.camera, scene1['camera'], scene2['camera'], frac)
+                else:
+                    value1 = scene1[view_attr]
+                    value2 = scene2[view_attr]
+                    setattr(view, view_attr, frac_lerp(value1, value2, frac))
 
             # TODO Most likley will need a redraw after this is done. Not sure how to do that yet. Look in restore_snapshot
 
