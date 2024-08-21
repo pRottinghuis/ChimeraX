@@ -156,6 +156,8 @@ class ViewState:
             if view_attr in scene1 and view_attr in scene2:
                 if view_attr == 'camera':
                     CameraState.interpolate(view.camera, scene1['camera'], scene2['camera'], frac)
+                    # TODO center_of_rotation might be relevant to make the camera interpolation clean
+                    # TODO figure out how to handle center_of_rotation changing and using it to interpolate the camera
                 else:
                     value1 = scene1[view_attr]
                     value2 = scene2[view_attr]
