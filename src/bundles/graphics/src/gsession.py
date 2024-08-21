@@ -212,8 +212,7 @@ class CameraState:
                 # Not currently supporting changing camera type
                 continue
             if camera_attr == 'position':
-                setattr(camera, camera_attr, PlaceState.interpolate(camera.position, scene1['position'], scene2['position'], frac))
-                # TODO install chimerax.geometry bundle as edible and test position interpolate.
+                setattr(camera, camera_attr, PlaceState.place_lerp(scene1['position'], scene2['position'], frac))
                 continue
             if camera_attr in scene1 and camera_attr in scene2:
                 value1 = scene1[camera_attr]
