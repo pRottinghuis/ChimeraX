@@ -211,6 +211,20 @@ class CameraState:
     def reset_state(camera, session):
         pass
 
+    @staticmethod
+    def interpolate(camera, scene1, scene2, frac):
+        for camera_attr in CameraState.save_attrs:
+            if camera_attr == 'name':
+                # Not currently supporting changing camera type
+                continue
+            if camera_attr == 'position':
+                # TODO interpolate camera position
+                continue
+            if camera_attr in scene1 and camera_attr in scene2:
+                value1 = scene1[camera_attr]
+                value2 = scene2[camera_attr]
+                setattr(camera, camera_attr, frac_lerp(value1, value2, frac))
+
 
 class LightingState:
 
