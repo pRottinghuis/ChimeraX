@@ -288,12 +288,15 @@ class LightingState:
 
     @staticmethod
     def interpolate(lighting, scene1, scene2, frac):
-        # TODO bug when different lighting styles get interpolated on a rotation
         for light_attr in LightingState.save_attrs:
             if light_attr in scene1 and light_attr in scene2:
                 value1 = scene1[light_attr]
                 value2 = scene2[light_attr]
-                setattr(lighting, light_attr, frac_lerp(value1, value2, frac))
+                if light_attr == "multishadow":
+                    # multishadow has to be a whole number
+                    setattr(lighting, light_attr, round(frac_lerp(value1, value2, frac)))
+                else:
+                    setattr(lighting, light_attr, frac_lerp(value1, value2, frac))
 
 
 class MaterialState:
