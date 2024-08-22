@@ -151,7 +151,7 @@ class ViewState:
         """
 
         for view_attr in ViewState.save_attrs:
-            if view_attr in ['silhouettes', 'clip_planes']:
+            if view_attr in ['clip_planes']:
                 continue
             if view_attr in scene1 and view_attr in scene2:
                 if view_attr == 'camera':
@@ -169,8 +169,13 @@ class ViewState:
         # Here we know that the center_of_rotation has been interpolated
         CameraState.interpolate(view.camera, scene1['camera'], scene2['camera'], view.center_of_rotation, frac)
 
-
-            # TODO Most likley will need a redraw after this is done. Not sure how to do that yet. Look in restore_snapshot
+        # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
+        if "silhouettes" in scene1 and "silhouettes" in scene2:
+            for attr in ViewState.silhouette_attrs:
+                if attr in scene1['silhouettes'] and attr in scene2['silhouettes']:
+                    value1 = scene1['silhouettes'][attr]
+                    value2 = scene2['silhouettes'][attr]
+                    setattr(view.silhouette, attr, frac_lerp(value1, value2, frac))
 
 
 class CameraState:
