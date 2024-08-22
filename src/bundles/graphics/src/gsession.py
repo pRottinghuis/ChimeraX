@@ -151,13 +151,15 @@ class ViewState:
         """
 
         for view_attr in ViewState.save_attrs:
-            if view_attr in ['lighting', 'material', 'silhouettes', 'clip_planes']:
+            if view_attr in ['material', 'silhouettes', 'clip_planes']:
                 continue
             if view_attr in scene1 and view_attr in scene2:
                 if view_attr == 'camera':
                     # we need to make sure that the center_of_rotation is interpolated first so we can use it to
                     # interpolate the camera
                     continue
+                elif view_attr == 'lighting':
+                    LightingState.interpolate(view.lighting, scene1['lighting'], scene2['lighting'], frac)
                 else:
                     value1 = scene1[view_attr]
                     value2 = scene2[view_attr]
@@ -275,6 +277,14 @@ class LightingState:
     @staticmethod
     def reset_state(lighting, session):
         pass
+
+    @staticmethod
+    def interpolate(lighting, scene1, scene2, frac):
+        for light_attr in LightingState.save_attrs:
+            if light_attr in scene1 and light_attr in scene2:
+                value1 = scene1[light_attr]
+                value2 = scene2[light_attr]
+                setattr(lighting, light_attr, frac_lerp(value1, value2, frac))
 
 
 class MaterialState:
