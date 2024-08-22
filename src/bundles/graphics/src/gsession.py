@@ -152,6 +152,7 @@ class ViewState:
 
         for view_attr in ViewState.save_attrs:
             if view_attr in ['clip_planes']:
+                # TODO What is a clip plane?
                 continue
             if view_attr in scene1 and view_attr in scene2:
                 if view_attr == 'camera':
@@ -287,6 +288,7 @@ class LightingState:
 
     @staticmethod
     def interpolate(lighting, scene1, scene2, frac):
+        # TODO bug when different lighting styles get interpolated on a rotation
         for light_attr in LightingState.save_attrs:
             if light_attr in scene1 and light_attr in scene2:
                 value1 = scene1[light_attr]
