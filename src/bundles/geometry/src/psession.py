@@ -38,11 +38,10 @@ class PlaceState:
         return p
 
     @staticmethod
-    def place_lerp(p1_data, p2_data, fraction):
+    def place_lerp(p1_data, p2_data, center, fraction):
         from .place import Place
         p1 = Place(p1_data['matrix'])
         p2 = Place(p2_data['matrix'])
-        center = (0, 0, 0)
         return p1.interpolate(p2, center, fraction)
 
 class PlacesState:

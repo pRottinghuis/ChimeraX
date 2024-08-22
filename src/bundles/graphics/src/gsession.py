@@ -155,13 +155,16 @@ class ViewState:
                 continue
             if view_attr in scene1 and view_attr in scene2:
                 if view_attr == 'camera':
-                    CameraState.interpolate(view.camera, scene1['camera'], scene2['camera'], frac)
-                    # TODO center_of_rotation might be relevant to make the camera interpolation clean
-                    # TODO figure out how to handle center_of_rotation changing and using it to interpolate the camera
+                    # we need to make sure that the center_of_rotation is interpolated first so we can use it to
+                    # interpolate the camera
+                    continue
                 else:
                     value1 = scene1[view_attr]
                     value2 = scene2[view_attr]
                     setattr(view, view_attr, frac_lerp(value1, value2, frac))
+        # Here we know that the center_of_rotation has been interpolated
+        CameraState.interpolate(view.camera, scene1['camera'], scene2['camera'], view.center_of_rotation, frac)
+
 
             # TODO Most likley will need a redraw after this is done. Not sure how to do that yet. Look in restore_snapshot
 
@@ -208,13 +211,13 @@ class CameraState:
         pass
 
     @staticmethod
-    def interpolate(camera, scene1, scene2, frac):
+    def interpolate(camera, scene1, scene2, center, frac):
         for camera_attr in CameraState.save_attrs:
             if camera_attr == 'name':
                 # Not currently supporting changing camera type
                 continue
             if camera_attr == 'position':
-                setattr(camera, camera_attr, PlaceState.place_lerp(scene1['position'], scene2['position'], frac))
+                setattr(camera, camera_attr, PlaceState.place_lerp(scene1['position'], scene2['position'], center, frac))
                 continue
             if camera_attr in scene1 and camera_attr in scene2:
                 value1 = scene1[camera_attr]
