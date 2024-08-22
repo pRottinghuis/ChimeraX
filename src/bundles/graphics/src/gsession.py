@@ -151,7 +151,7 @@ class ViewState:
         """
 
         for view_attr in ViewState.save_attrs:
-            if view_attr in ['material', 'silhouettes', 'clip_planes']:
+            if view_attr in ['silhouettes', 'clip_planes']:
                 continue
             if view_attr in scene1 and view_attr in scene2:
                 if view_attr == 'camera':
@@ -160,6 +160,8 @@ class ViewState:
                     continue
                 elif view_attr == 'lighting':
                     LightingState.interpolate(view.lighting, scene1['lighting'], scene2['lighting'], frac)
+                elif view_attr == 'material':
+                    MaterialState.interpolate(view.material, scene1['material'], scene2['material'], frac)
                 else:
                     value1 = scene1[view_attr]
                     value2 = scene2[view_attr]
@@ -323,6 +325,14 @@ class MaterialState:
     @staticmethod
     def reset_state(Material, session):
         pass
+
+    @staticmethod
+    def interpolate(material, scene1, scene2, frac):
+        for mat_attr in MaterialState.save_attrs:
+            if mat_attr in scene1 and mat_attr in scene2:
+                value1 = scene1[mat_attr]
+                value2 = scene2[mat_attr]
+                setattr(material, mat_attr, frac_lerp(value1, value2, frac))
 
 
 class ClipPlaneState:
