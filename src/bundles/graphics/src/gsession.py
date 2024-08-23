@@ -148,10 +148,19 @@ class ViewState:
         :param scene1: Starting ViewState scene data
         :param scene2: Ending ViewState scene data
         :param frac: Fraction of the way between scene1 and scene2 to interpolate
+
+        save_attrs = ['camera', 'lighting', 'material',
+                  'center_of_rotation', 'center_of_rotation_method',
+                  'background_color', 'highlight_color', 'highlight_thickness']
+        silhouette_attrs = ['enabled', 'thickness', 'color', 'depth_jump']
         """
 
         for view_attr in ViewState.save_attrs:
-            continue
+            if view_attr in scene1 and view_attr in scene2:
+                if view_attr == "background_color":
+                    lerp_val = list_frac_lerp(scene1[view_attr], scene2[view_attr], frac)
+                    setattr(view, view_attr, lerp_val)
+
 
         # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
 
