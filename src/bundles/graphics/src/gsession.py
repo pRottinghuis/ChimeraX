@@ -151,32 +151,9 @@ class ViewState:
         """
 
         for view_attr in ViewState.save_attrs:
-            if view_attr in ['clip_planes']:
-                # TODO What is a clip plane?
-                continue
-            if view_attr in scene1 and view_attr in scene2:
-                if view_attr == 'camera':
-                    # we need to make sure that the center_of_rotation is interpolated first so we can use it to
-                    # interpolate the camera
-                    continue
-                elif view_attr == 'lighting':
-                    LightingState.interpolate(view.lighting, scene1['lighting'], scene2['lighting'], frac)
-                elif view_attr == 'material':
-                    MaterialState.interpolate(view.material, scene1['material'], scene2['material'], frac)
-                else:
-                    value1 = scene1[view_attr]
-                    value2 = scene2[view_attr]
-                    setattr(view, view_attr, frac_lerp(value1, value2, frac))
-        # Here we know that the center_of_rotation has been interpolated
-        CameraState.interpolate(view.camera, scene1['camera'], scene2['camera'], view.center_of_rotation, frac)
+            continue
 
         # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
-        if "silhouettes" in scene1 and "silhouettes" in scene2:
-            for attr in ViewState.silhouette_attrs:
-                if attr in scene1['silhouettes'] and attr in scene2['silhouettes']:
-                    value1 = scene1['silhouettes'][attr]
-                    value2 = scene2['silhouettes'][attr]
-                    setattr(view.silhouette, attr, frac_lerp(value1, value2, frac))
 
 
 class CameraState:

@@ -70,12 +70,12 @@ class SceneManager(StateManager):
             scene1 = self.scenes[scene_name1]
             scene2 = self.scenes[scene_name2]
 
-            """ViewState.interpolate(
+            ViewState.interpolate(
                 self.session.view,
                 scene1.main_view_data,
                 scene2.main_view_data,
                 fraction
-            )"""
+            )
 
             # Use NamedViews to interpolate camera, clip planes, and model positions. See _InterpolateViews
             from chimerax.std_commands.view import _interpolate_views, _model_motion_centers
