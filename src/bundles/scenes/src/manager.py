@@ -24,6 +24,7 @@
 
 from chimerax.core.state import StateManager
 from chimerax.graphics.gsession import ViewState
+from .scene import Scene
 
 
 class SceneManager(StateManager):
@@ -32,7 +33,8 @@ class SceneManager(StateManager):
     ADDED, DELETED = trigger_names = ("added", "deleted")
 
     def __init__(self, session):
-        self.scenes = {}  # name -> Scene
+
+        self.scenes: {str, Scene} = {}  # name -> Scene
         self.session = session
         from chimerax.core.triggerset import TriggerSet
         self.triggers = TriggerSet()
@@ -53,7 +55,6 @@ class SceneManager(StateManager):
         """Save scene named 'scene_name'"""
         if scene_name in self.scenes:
             self.delete_scene(scene_name)
-        from .scene import Scene
         self.scenes[scene_name] = Scene(self.session)
         return
 
