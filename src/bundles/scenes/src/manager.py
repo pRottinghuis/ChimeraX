@@ -66,12 +66,15 @@ class SceneManager(StateManager):
     def interpolate_scenes(self, scene_name1, scene_name2, fraction):
         """Interpolate between two scenes"""
         if scene_name1 in self.scenes and scene_name2 in self.scenes:
+            scene1 = self.scenes[scene_name1]
+            scene2 = self.scenes[scene_name2]
             ViewState.interpolate(
                 self.session.view,
-                self.scenes[scene_name1].main_view_data,
-                self.scenes[scene_name2].main_view_data,
+                scene1.main_view_data,
+                scene2.main_view_data,
                 fraction
             )
+
         return
 
     def _remove_models_cb(self, trig_name, models):
