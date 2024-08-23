@@ -463,15 +463,23 @@ class DrawingState:
         pass
 
 
-def frac_lerp(value1, value2, fraction):
+def num_frac_lerp(value1, value2, fraction):
     """
     Linear interpolation between two values based on a fraction.
-    Supported Types: int, float, np.ndarray, list, tuple, bool, str
+    Supported Types: number types, np.ndarray
     """
-    if isinstance(value1, (int, float, np.ndarray)):
-        return value1 + fraction * (value2 - value1)
-    elif isinstance(value1, (list, tuple)):
-        return [value1[i] + fraction * (value2[i] - value1[i]) for i in range(len(value1))]
-    elif isinstance(value1, (bool, str)):
-        # Swap value at threshold
-       return value1 if fraction < 0.5 else value2
+    return value1 + fraction * (value2 - value1)
+
+def list_frac_lerp(value1, value2, fraction):
+    """
+    Linear interpolation between two list-like types based on a fraction.
+    Supported Types: list, tuple ...
+    """
+    return [value1[i] + fraction * (value2[i] - value1[i]) for i in range(len(value1))]
+
+def threshold_frac_lerp(value1, value2, fraction):
+    """
+    Either value1 or value2 based on a threshold.
+    Supported Types: bool, str
+    """
+    return value1 if fraction < 0.5 else value2
