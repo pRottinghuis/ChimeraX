@@ -221,18 +221,18 @@ class CameraState:
         pass
 
     @staticmethod
-    def interpolate(camera, scene1, scene2, center, frac):
+    def interpolate(camera, c_data_1, c_data_2, center, frac):
         for camera_attr in CameraState.save_attrs:
-            if camera_attr in scene1 and camera_attr in scene2:
+            if camera_attr in c_data_1 and camera_attr in c_data_2:
                 if camera_attr == 'name':
                     # Not currently supporting changing camera type
                     continue
                 elif camera_attr == 'position':
-                    setattr(camera, camera_attr, PlaceState.place_lerp(scene1['position'], scene2['position'], center, frac))
+                    setattr(camera, camera_attr, PlaceState.place_lerp(c_data_1['position'], c_data_2['position'], center, frac))
                     continue
                 else:
-                    value1 = scene1[camera_attr]
-                    value2 = scene2[camera_attr]
+                    value1 = c_data_1[camera_attr]
+                    value2 = c_data_2[camera_attr]
                     setattr(camera, camera_attr, frac_lerp(value1, value2, frac))
 
 
