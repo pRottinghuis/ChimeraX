@@ -164,6 +164,11 @@ class ViewState:
                     # Highlight color is the select option color
                     lerp_val = list_frac_lerp(scene1[view_attr], scene2[view_attr], frac)
                     setattr(view, view_attr, lerp_val)
+                elif view_attr == "highlight_thickness":
+                    # Highlight thickness only changes on the whole number. Round to avoid only potential issues
+                    lerp_val = round(num_frac_lerp(scene1[view_attr], scene2[view_attr], frac))
+                    setattr(view, view_attr, lerp_val)
+                    
 
         # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
 
