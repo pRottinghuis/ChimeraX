@@ -30,6 +30,8 @@ import copy
 
 class Scene(State):
 
+    scene_number = 0
+
     def __init__(self, session, *, session_data=None):
         self.version = "0"
         self.session = session
@@ -37,7 +39,12 @@ class Scene(State):
             self.main_view_data = self.create_main_view_data()
         else:
             self.main_view_data = session_data['main_view']
-        # need to save view data and lighting data
+
+        from chimerax.std_commands.view import view_name, _named_views
+        scene_v_name = f"scene-{Scene.scene_number}"
+        Scene.scene_number += 1
+        view_name(self.session, scene_v_name)
+        self.named_view = _named_views(self.session).views.get(scene_v_name)
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
