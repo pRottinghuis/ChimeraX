@@ -76,6 +76,12 @@ class SceneManager(StateManager):
                 fraction
             )
 
+            # Use NamedViews to interpolate camera, clip planes, and model positions. See _InterpolateViews
+            from chimerax.std_commands.view import _interpolate_views, _model_motion_centers
+            view1 = scene1.named_view
+            view2 = scene2.named_view
+            centers = _model_motion_centers(view1.positions, view2.positions)
+            _interpolate_views(view1, view2, fraction, self.session.main_view, centers)
         return
 
     def _remove_models_cb(self, trig_name, models):
