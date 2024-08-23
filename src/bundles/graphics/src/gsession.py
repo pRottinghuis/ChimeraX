@@ -168,7 +168,15 @@ class ViewState:
                     # Highlight thickness only changes on the whole number. Round to avoid only potential issues
                     lerp_val = round(num_frac_lerp(scene1[view_attr], scene2[view_attr], frac))
                     setattr(view, view_attr, lerp_val)
-                    
+
+        s_data1 = scene1['silhouettes']
+        s_data2 = scene2['silhouettes']
+        for silhouette_attr in ViewState.silhouette_attrs:
+            if silhouette_attr in s_data1 and silhouette_attr in s_data2:
+                if silhouette_attr == "enabled":
+                    # Enabled is a boolean
+                    lerp_val = threshold_frac_lerp(s_data1[silhouette_attr], s_data2[silhouette_attr], frac)
+                    setattr(view.silhouette, silhouette_attr, lerp_val)
 
         # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
 
