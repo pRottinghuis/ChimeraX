@@ -302,6 +302,9 @@ class LightingState:
                     # Numpy array
                     lerp_val = list_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
                     setattr(lighting, light_attr, lerp_val)
+                elif light_attr == "key_light_color":
+                    lerp_val = list_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
 
 
 
