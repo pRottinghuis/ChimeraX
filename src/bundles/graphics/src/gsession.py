@@ -184,6 +184,9 @@ class ViewState:
                 elif silhouette_attr == "color":
                     lerp_val = list_frac_lerp(s_data1[silhouette_attr], s_data2[silhouette_attr], frac)
                     setattr(view.silhouette, silhouette_attr, lerp_val)
+                elif silhouette_attr == "depth_jump":
+                    lerp_val = num_frac_lerp(s_data1[silhouette_attr], s_data2[silhouette_attr], frac)
+                    setattr(view.silhouette, silhouette_attr, lerp_val)
 
         # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
 
