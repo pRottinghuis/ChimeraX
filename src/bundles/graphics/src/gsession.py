@@ -317,6 +317,9 @@ class LightingState:
                 elif light_attr == "fill_light_intensity":
                     lerp_val = num_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
                     setattr(lighting, light_attr, lerp_val)
+                elif light_attr == "ambient_light_color":
+                    lerp_val = list_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
 
 
 
