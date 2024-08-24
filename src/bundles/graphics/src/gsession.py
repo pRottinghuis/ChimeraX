@@ -329,6 +329,13 @@ class LightingState:
                 elif light_attr == "depth_cue_start":
                     lerp_val = num_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
                     setattr(lighting, light_attr, lerp_val)
+                elif light_attr == "depth_cue_end":
+                    # This works, but it could maybe take a 'shorter path' in interpolating to look better.
+                    lerp_val = num_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
+                elif light_attr == "depth_cue_color":
+                    lerp_val = list_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
 
 
 
