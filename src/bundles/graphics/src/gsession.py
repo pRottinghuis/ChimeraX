@@ -171,6 +171,8 @@ class ViewState:
                     # Highlight thickness only changes on the whole number. Round to avoid only potential issues
                     lerp_val = round(num_frac_lerp(scene1[view_attr], scene2[view_attr], frac))
                     setattr(view, view_attr, lerp_val)
+                elif view_attr == "lighting":
+                    LightingState.interpolate(view.lighting, scene1[view_attr], scene2[view_attr], frac)
 
         s_data1 = scene1['silhouettes']
         s_data2 = scene2['silhouettes']
@@ -288,15 +290,19 @@ class LightingState:
 
     @staticmethod
     def interpolate(lighting, scene1, scene2, frac):
+        """
+        save_attrs = ['key_light_direction', 'key_light_color', 'key_light_intensity', 'fill_light_direction',
+        'fill_light_color', 'fill_light_intensity', 'ambient_light_color', 'ambient_light_intensity', 'depth_cue',
+        'depth_cue_start', 'depth_cue_end', 'depth_cue_color', 'move_lights_with_camera', 'shadows',
+        'shadow_map_size', 'shadow_depth_bias', 'multishadow', 'multishadow_map_size', 'multishadow_depth_bias']
+        """
         for light_attr in LightingState.save_attrs:
             if light_attr in scene1 and light_attr in scene2:
-                value1 = scene1[light_attr]
-                value2 = scene2[light_attr]
-                if light_attr == "multishadow":
-                    # multishadow has to be a whole number
-                    setattr(lighting, light_attr, round(frac_lerp(value1, value2, frac)))
-                else:
-                    setattr(lighting, light_attr, frac_lerp(value1, value2, frac))
+                if light_attr == "key_light_direction":
+                    # Numpy array
+                    lerp_val = list_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
+
 
 
 class MaterialState:
