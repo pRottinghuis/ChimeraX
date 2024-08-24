@@ -178,6 +178,7 @@ class ViewState:
                     lerp_val = threshold_frac_lerp(s_data1[silhouette_attr], s_data2[silhouette_attr], frac)
                     setattr(view.silhouette, silhouette_attr, lerp_val)
                 elif silhouette_attr == "thickness":
+                    # Not a fluid interpolation. Some value steps don't display changes like view.highlight_thickness
                     lerp_val = num_frac_lerp(s_data1[silhouette_attr], s_data2[silhouette_attr], frac)
                     setattr(view.silhouette, silhouette_attr, lerp_val)
                 elif silhouette_attr == "color":
