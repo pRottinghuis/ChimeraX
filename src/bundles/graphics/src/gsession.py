@@ -157,6 +157,9 @@ class ViewState:
 
         for view_attr in ViewState.save_attrs:
             if view_attr in scene1 and view_attr in scene2:
+
+                # TODO Skipping center_of_rotation and center_of_rotation_method for now. Not sure what they do.
+
                 if view_attr == "background_color":
                     lerp_val = list_frac_lerp(scene1[view_attr], scene2[view_attr], frac)
                     setattr(view, view_attr, lerp_val)
