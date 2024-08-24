@@ -326,6 +326,9 @@ class LightingState:
                 elif light_attr == "depth_cue":
                     lerp_val = threshold_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
                     setattr(lighting, light_attr, lerp_val)
+                elif light_attr == "depth_cue_start":
+                    lerp_val = num_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
 
 
 
