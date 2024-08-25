@@ -157,10 +157,23 @@ class ViewState:
 
         for view_attr in ViewState.save_attrs:
             if view_attr in scene1 and view_attr in scene2:
+                # Setting the center_of_rotation resets the center_of_rotation method to fixed. Changing the other
+                # center of rotation methods automatically calculate the center of rotation.
+                # For simplicity use a threshold lerp for center_of_rotation and center_of_rotation_method.
 
-                # TODO Skipping center_of_rotation and center_of_rotation_method for now. Not sure what they do.
-
-                if view_attr == "background_color":
+                if view_attr == "center_of_rotation":
+                    # Center of rotation is interpolated first according to save_attrs order, settattr will
+                    # automatically switch the center of rotation method to fixed because we set its value.
+                    lerp_val = threshold_frac_lerp(scene1[view_attr], scene2[view_attr], frac)
+                    setattr(view, view_attr, lerp_val)
+                elif view_attr == "center_of_rotation_method":
+                    # center_of_rotation method will be interpolated second according to save_attrs order. Since we set
+                    # the center of rotation first, the method will be set to fixed. If it is not supposed to be fixed
+                    # we will overwrite it with the correct method here, and it will automatically recalculate the
+                    # appropriate center of rotation.
+                    lerp_val = threshold_frac_lerp(scene1[view_attr], scene2[view_attr], frac)
+                    setattr(view, view_attr, lerp_val)
+                elif view_attr == "background_color":
                     lerp_val = list_frac_lerp(scene1[view_attr], scene2[view_attr], frac)
                     setattr(view, view_attr, lerp_val)
                 elif view_attr == "highlight_color":
