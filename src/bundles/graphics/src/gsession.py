@@ -427,6 +427,10 @@ class MaterialState:
                     # TODO find something to test this interpolation with
                     lerp_val = threshold_frac_lerp(scene1[mat_attr], scene2[mat_attr], frac)
                     setattr(material, mat_attr, lerp_val)
+                elif mat_attr == "meshes_cast_shadows":
+                    # TODO find something to test this interpolation with
+                    lerp_val = threshold_frac_lerp(scene1[mat_attr], scene2[mat_attr], frac)
+                    setattr(material, mat_attr, lerp_val)
 
 
 class ClipPlaneState:
