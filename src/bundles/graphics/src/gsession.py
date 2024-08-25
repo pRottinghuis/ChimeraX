@@ -417,6 +417,9 @@ class MaterialState:
                 elif mat_attr == "diffuse_reflectivity":
                     lerp_val = num_frac_lerp(scene1[mat_attr], scene2[mat_attr], frac)
                     setattr(material, mat_attr, lerp_val)
+                elif mat_attr == "specular_reflectivity":
+                    lerp_val = num_frac_lerp(scene1[mat_attr], scene2[mat_attr], frac)
+                    setattr(material, mat_attr, lerp_val)
 
 
 class ClipPlaneState:
