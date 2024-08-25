@@ -34,15 +34,15 @@ class Scene(State):
 
     version = 0
 
-    def __init__(self, session, *, session_data=None):
+    def __init__(self, session, *, scene_data=None):
         self.session = session
-        if session_data is None:
+        if scene_data is None:
             self.main_view_data = self.create_main_view_data()
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
         else:
-            self.main_view_data = session_data['main_view']
-            self.named_view = NamedView.restore_snapshot(session, session_data['named_view'])
+            self.main_view_data = scene_data['main_view']
+            self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
@@ -89,7 +89,7 @@ class Scene(State):
 
     @staticmethod
     def restore_snapshot(session, data):
-        return Scene(session, session_data=data)
+        return Scene(session, scene_data=data)
 
     def take_snapshot(self, session, flags):
         return {
