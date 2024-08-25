@@ -32,8 +32,9 @@ class Scene(State):
 
     scene_number = 0
 
+    version = 0
+
     def __init__(self, session, *, session_data=None):
-        self.version = "0"
         self.session = session
         if session_data is None:
             self.main_view_data = self.create_main_view_data()
