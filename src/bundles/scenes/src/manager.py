@@ -30,6 +30,7 @@ from .scene import Scene
 class SceneManager(StateManager):
     """Manager for scenes"""
 
+    version = 0
     ADDED, DELETED = trigger_names = ("added", "deleted")
 
     def __init__(self, session):
