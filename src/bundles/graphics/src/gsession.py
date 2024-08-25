@@ -361,7 +361,6 @@ class LightingState:
                     setattr(lighting, light_attr, lerp_val)
 
 
-
 class MaterialState:
 
     version = 1
