@@ -41,7 +41,7 @@ class Scene(State):
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
         else:
-            self.main_view_data = scene_data['main_view']
+            self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
 
     def restore_scene(self):
