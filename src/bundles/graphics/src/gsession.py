@@ -195,7 +195,8 @@ class ViewState:
                     lerp_val = num_frac_lerp(s_data1[silhouette_attr], s_data2[silhouette_attr], frac)
                     setattr(view.silhouette, silhouette_attr, lerp_val)
 
-        # Silhouettes are not saved as part of ViewState save_attrs, so we need to interpolate them outside the loop
+        view.update_lighting = True
+        view.redraw_needed = True
 
 
 class CameraState:
