@@ -32,18 +32,14 @@ import copy
 
 class Scene(State):
 
-    scene_number = 0
-
     version = 0
 
     def __init__(self, session, *, session_data=None):
         self.session = session
         if session_data is None:
             self.main_view_data = self.create_main_view_data()
-            scene_v_name = f"scene-{Scene.scene_number}"
-            Scene.scene_number += 1
-            view_name(self.session, scene_v_name)
-            self.named_view = _named_views(self.session).views.get(scene_v_name)
+            models = session.models.list()
+            self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
         else:
             self.main_view_data = session_data['main_view']
             self.named_view = NamedView.restore_snapshot(session, session_data['named_view'])
