@@ -173,6 +173,8 @@ class ViewState:
                     setattr(view, view_attr, lerp_val)
                 elif view_attr == "lighting":
                     LightingState.interpolate(view.lighting, scene1[view_attr], scene2[view_attr], frac)
+                elif view_attr == "material":
+                    MaterialState.interpolate(view.material, scene1[view_attr], scene2[view_attr], frac)
 
         s_data1 = scene1['silhouettes']
         s_data2 = scene2['silhouettes']
@@ -400,11 +402,18 @@ class MaterialState:
 
     @staticmethod
     def interpolate(material, scene1, scene2, frac):
+        """
+        save_attrs = [
+        'ambient_reflectivity', 'diffuse_reflectivity',
+        'specular_reflectivity', 'specular_exponent',
+        'transparent_cast_shadows', 'meshes_cast_shadows']
+        """
+
         for mat_attr in MaterialState.save_attrs:
             if mat_attr in scene1 and mat_attr in scene2:
-                value1 = scene1[mat_attr]
-                value2 = scene2[mat_attr]
-                setattr(material, mat_attr, frac_lerp(value1, value2, frac))
+                if mat_attr == "ambient_reflectivity":
+                    lerp_val = num_frac_lerp(scene1[mat_attr], scene2[mat_attr], frac)
+                    setattr(material, mat_attr, lerp_val)
 
 
 class ClipPlaneState:
