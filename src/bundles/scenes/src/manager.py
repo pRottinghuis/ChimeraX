@@ -96,6 +96,8 @@ class SceneManager(StateManager):
 
     @staticmethod
     def restore_snapshot(session, data):
+        if data['version'] != SceneManager.version:
+            raise ValueError("scenes restore_snapshot: unknown version in data: %d" % data['version'])
         mgr = session.scenes
         mgr._ses_restore(data)
         return mgr
@@ -103,12 +105,12 @@ class SceneManager(StateManager):
     def take_snapshot(self, session, flags):
         # viewer_info is "session independent"
         return {
-            'version': 1,
-            'scenes': self.scenes,
+            'version': self.version,
+            'scenes': {scene_name: scene.take_snapshot(session, flags) for scene_name, scene in self.scenes.items()}
         }
 
     def _ses_restore(self, data):
         self.clear()
-        self.scenes = data['scenes']
-        for scene_name in self.scenes.keys():
-            self.triggers.activate(self.ADDED, scene_name)
+        for scene_name, scene_snapshot in data['scenes'].items():
+            scene = Scene.restore_snapshot(self.session, scene_snapshot)
+            self.scenes[scene_name] = scene
