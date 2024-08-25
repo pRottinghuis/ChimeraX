@@ -95,8 +95,8 @@ class Scene(State):
         return Scene(session, session_data=data)
 
     def take_snapshot(self, session, flags):
-        raise NotImplementedError("Scene saving in sessions not implemented")
         return {
             'version': self.version,
-            'model_data': self.model_data
+            'main_view_data': self.main_view_data,
+            'named_view': self.named_view.take_snapshot(session, flags)
         }
