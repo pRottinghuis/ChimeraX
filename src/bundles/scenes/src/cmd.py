@@ -64,10 +64,13 @@ def dynamic_interpolate_scenes(session, scene_name1, scene_name2):
     60fps"""
     from chimerax.core.commands import run
     import time
-    for i in range(5):
-        for j in range(60):
-            run(session, f"scenes interpolate {scene_name1} {scene_name2} {(i * 60 + j)/300}")
-            time.sleep(1/60)
+    from chimerax.core.commands.motion import CallForNFrames
+
+    def frame_func(session, f):
+        fraction = f / 300
+        session.scenes.interpolate_scenes(scene_name1, scene_name2, fraction)
+
+    CallForNFrames(frame_func, 300, session)
 
 
 dynamic_interpolate_scenes_desc = CmdDesc(
