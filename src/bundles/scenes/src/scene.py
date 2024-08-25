@@ -25,7 +25,7 @@
 from chimerax.core.state import State
 from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState
 from chimerax.geometry.psession import PlaceState
-from chimerax.std_commands.view import NamedView, view_name, _named_views
+from chimerax.std_commands.view import NamedView
 
 import copy
 
