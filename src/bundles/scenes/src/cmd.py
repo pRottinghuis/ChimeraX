@@ -11,6 +11,9 @@ def register_command(command_name, logger):
     elif command_name == "scenes interpolate":
         func = interpolate_scenes
         desc = interpolate_scenes_desc
+    elif command_name == "scenes dInterpolate":
+        func = dynamic_interpolate_scenes
+        desc = dynamic_interpolate_scenes_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
@@ -53,4 +56,24 @@ interpolate_scenes_desc = CmdDesc(
         ("fraction", FloatArg)
     ],
     synopsis="Interpolate between two scenes."
+)
+
+
+def dynamic_interpolate_scenes(session, scene_name1, scene_name2):
+    """Interpolate between two scenes using a fraction but make the animation take 5 seconds and split it into
+    60fps"""
+    from chimerax.core.commands import run
+    import time
+    for i in range(5):
+        for j in range(60):
+            run(session, f"scenes interpolate {scene_name1} {scene_name2} {(i * 60 + j)/300}")
+            time.sleep(1/60)
+
+
+dynamic_interpolate_scenes_desc = CmdDesc(
+    required=[
+        ("scene_name1", StringArg),
+        ("scene_name2", StringArg)
+    ],
+    synopsis="Interpolate between two scenes dynamically."
 )
