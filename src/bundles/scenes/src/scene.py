@@ -25,6 +25,8 @@
 from chimerax.core.state import State
 from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState
 from chimerax.geometry.psession import PlaceState
+from chimerax.std_commands.view import NamedView, view_name, _named_views
+
 import copy
 
 
@@ -38,14 +40,13 @@ class Scene(State):
         self.session = session
         if session_data is None:
             self.main_view_data = self.create_main_view_data()
+            scene_v_name = f"scene-{Scene.scene_number}"
+            Scene.scene_number += 1
+            view_name(self.session, scene_v_name)
+            self.named_view = _named_views(self.session).views.get(scene_v_name)
         else:
             self.main_view_data = session_data['main_view']
-
-        from chimerax.std_commands.view import view_name, _named_views
-        scene_v_name = f"scene-{Scene.scene_number}"
-        Scene.scene_number += 1
-        view_name(self.session, scene_v_name)
-        self.named_view = _named_views(self.session).views.get(scene_v_name)
+            self.named_view = NamedView.restore_snapshot(session, session_data['named_view'])
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
