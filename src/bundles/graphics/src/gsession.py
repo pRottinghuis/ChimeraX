@@ -346,6 +346,9 @@ class LightingState:
                     # Shadow map size needs to be a whole number
                     lerp_val = round(num_frac_lerp(scene1[light_attr], scene2[light_attr], frac))
                     setattr(lighting, light_attr, lerp_val)
+                elif light_attr == "shadow_depth_bias":
+                    lerp_val = num_frac_lerp(scene1[light_attr], scene2[light_attr], frac)
+                    setattr(lighting, light_attr, lerp_val)
 
 
 
