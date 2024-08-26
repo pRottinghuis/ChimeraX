@@ -1,4 +1,4 @@
-<BundleInfo name="ChimeraX-Scenes" version="1.0" package="chimerax.scenes"
+<BundleInfo name="ChimeraX-Scenes" version="0.1" package="chimerax.scenes"
   	    customInit="true" minSessionVersion="1" maxSessionVersion="1">
 
   <!-- Additional information about bundle source -->
@@ -26,6 +26,17 @@
     <PythonClassifier>Development Status :: 2 - Pre-Alpha</PythonClassifier>
     <PythonClassifier>License :: Free for non-commercial use</PythonClassifier>
     <!-- <ChimeraXClassifier>Command :: sequence :: Sequence alignment :: control/open sequence alignments</ChimeraXClassifier> -->
+
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes scene :: General ::
+      Save a scene to the sessions scene manager. </ChimeraXClassifier>
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes restore :: General ::
+    Save a scene to the sessions scene manager. </ChimeraXClassifier>
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes interpolate :: General ::
+    Interpolate between two scenes. </ChimeraXClassifier>
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes dInterpolate :: General ::
+    Interpolate between two scenes dynamically. </ChimeraXClassifier>
+  <ChimeraXClassifier>ChimeraX :: Command :: scenes list :: General ::
+    List current scenes in the log. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>

@@ -37,6 +37,13 @@ class PlaceState:
         p._is_identity = data['_is_identity']
         return p
 
+    @staticmethod
+    def place_lerp(p1_data, p2_data, center, fraction):
+        from .place import Place
+        p1 = Place(p1_data['matrix'])
+        p2 = Place(p2_data['matrix'])
+        return p1.interpolate(p2, center, fraction)
+
 class PlacesState:
     version = 1
 
