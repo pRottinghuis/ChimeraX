@@ -42,15 +42,18 @@ class Scene(State):
         """
         self.session = session
         if scene_data is None:
+            # Want a new scene
             self.main_view_data = self.create_main_view_data()
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
         else:
+            # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
+        # Restore the camera position and orientation, clipping planes, and model positions using the NamedView
         current_models = self.session.models.list()
         for model in current_models:
             if model in self.named_view.positions:
@@ -82,12 +85,12 @@ class Scene(State):
 
     def restore_main_view_data(self, data):
         """
-        Restore the main view data using ViewState.
+        Restore the main view data using ViewState. Convert all nested data back into objects before using ViewState
+        restore_snapshot.
         """
+
         # We need to be mindful that we convert all nested dicts back into the proper objects
-        # This is a technically a recursive process, but we are doing it manually for now
-        # Also important to realize that data is a pass by reference to a dict we are storing in our scene.
-        # We should not overwrite it
+        # Data is a pass by reference to a dict we are storing in our scene. We should not overwrite it
         restore_data = copy.deepcopy(data)
 
         restore_data['camera']['position'] = PlaceState.restore_snapshot(self.session, restore_data['camera']['position'])
