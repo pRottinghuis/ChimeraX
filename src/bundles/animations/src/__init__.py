@@ -20,6 +20,12 @@ class _MyAPI(BundleAPI):
             return AnimationsTool
         raise ValueError("Unknown class name '%s'" % class_name)
 
+    @staticmethod
+    def register_command(bi, ci, logger):
+        from chimerax.core.commands import register
+        from . import cmd
+        pass
+
 
 # Create the ``bundle_api`` object that ChimeraX expects.
 bundle_api = _MyAPI()
