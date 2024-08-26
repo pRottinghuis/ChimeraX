@@ -14,6 +14,9 @@ def register_command(command_name, logger):
     elif command_name == "scenes dInterpolate":
         func = dynamic_interpolate_scenes
         desc = dynamic_interpolate_scenes_desc
+    elif command_name == "scenes list":
+        func = list_scenes
+        desc = list_scenes_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
@@ -79,4 +82,15 @@ dynamic_interpolate_scenes_desc = CmdDesc(
         ("scene_name2", StringArg)
     ],
     synopsis="Interpolate between two scenes dynamically."
+)
+
+
+def list_scenes(session):
+    """List all saved scenes."""
+    for scene_name in session.scenes.scenes.keys():
+        print(scene_name)
+
+
+list_scenes_desc = CmdDesc(
+    synopsis="List all saved scenes."
 )
