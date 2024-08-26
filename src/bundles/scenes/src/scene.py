@@ -35,6 +35,11 @@ class Scene(State):
     version = 0
 
     def __init__(self, session, *, scene_data=None):
+        """
+        A Scene object saves a copy of the data that ViewState takes snapshot of, and also a NamedView object which
+        is a different type of state save used by chimerax.core.std_commands bundle for interpolating the camera
+        position, camera orientation, clipping planes and model positions.
+        """
         self.session = session
         if scene_data is None:
             self.main_view_data = self.create_main_view_data()
@@ -48,11 +53,16 @@ class Scene(State):
         self.restore_main_view_data(self.main_view_data)
 
     def create_main_view_data(self):
+        """
+        Created nested dictionary of the main view data using variation of the ViewState take_snapshot method.
+        """
         main_view = self.session.view
 
         view_state = self.session.snapshot_methods(main_view)
         data = view_state.take_snapshot(main_view, self.session, State.SCENE)
 
+        # By default, ViewState take_snapshot uses class name references and uids to store data for object attrs stored
+        # in the View. For the simplicity of Scenes we want to convert all the nested objects into raw data.
         v_camera = main_view.camera
         data['camera'] = CameraState.take_snapshot(v_camera, self.session, State.SCENE)
         c_position = v_camera.position
@@ -67,9 +77,12 @@ class Scene(State):
         return data
 
     def restore_main_view_data(self, data):
+        """
+        Restore the main view data using ViewState.
+        """
         # We need to be mindful that we convert all nested dicts back into the proper objects
         # This is a technically a recursive process, but we are doing it manually for now
-        # Also important to realize that data is a reference to a dict we are storing in our scene.
+        # Also important to realize that data is a pass by reference to a dict we are storing in our scene.
         # We should not overwrite it
         restore_data = copy.deepcopy(data)
 
@@ -81,8 +94,10 @@ class Scene(State):
         restore_data['material'] = MaterialState.restore_snapshot(self.session, restore_data['material'])
 
         # The ViewState by default skips resetting the camera because session.restore_options.get('restore camera')
-        # is None. We set it to True, let the camera be restored, and then delete the option so it reads None again in
-        # case it is an important option for other parts of the code
+        # is None. We set it to True, let the camera be restored, and then delete the option, so it reads None again in
+        # case it is an important option for other parts of the code. We don't need to use the NamedView stored in the
+        # scene to restore camera because the camera position is stored/restored using ViewState take and restore
+        # snapshot.
         self.session.restore_options['restore camera'] = True
         ViewState.restore_snapshot(self.session, restore_data)
         del self.session.restore_options['restore camera']
