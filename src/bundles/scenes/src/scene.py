@@ -51,6 +51,10 @@ class Scene(State):
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
+        current_models = self.session.models.list()
+        for model in current_models:
+            if model in self.named_view.positions:
+                model.positions = self.named_view.positions[model]
 
     def create_main_view_data(self):
         """
