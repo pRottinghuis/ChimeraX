@@ -67,11 +67,11 @@ class Animation(StateManager):
         self.keyframes = dict(sorted(self.keyframes.items(), key=lambda item: item[1]))
 
     def _format_time(self, time):
-        """Convert time in seconds to min:sec:millisecond format."""
+        """Convert time in seconds to min:sec.__ format."""
         minutes = int(time // 60)
         seconds = int(time % 60)
-        milliseconds = round((time - int(time)) * 1000, 2)
-        return f"{minutes}:{seconds:02}:{milliseconds:05.2f}"
+        fractional_seconds = round(time % 1, 2)
+        return f"{minutes}:{seconds:02}.{int(fractional_seconds * 100):02}"
 
     def keyframe_exists(self, keyframe_name):
         return keyframe_name in self.keyframes
