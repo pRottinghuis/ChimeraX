@@ -7,6 +7,9 @@ def register_command(command_name, logger):
     if command_name == "animations keyframe":
         func = keyframe
         desc = keyframe_desc
+    elif command_name == "animations timeline":
+        func = timeline
+        desc = timeline_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
@@ -54,4 +57,19 @@ keyframe_desc = CmdDesc(
         ("time", FloatArg)
     ],
     synopsis="Create a keyframe in the animation StateManager."
+)
+
+
+def timeline(session):
+    """
+    ChimeraX command to list all keyframes in the animation StateManager in the log.
+    """
+    animation_mgr = session.get_state_manager("animations")
+    keyframes = animation_mgr.list_keyframes()
+    for keyframe in keyframes:
+        print(keyframe)
+
+
+timeline_desc = CmdDesc(
+    synopsis="List all keyframes in the animation StateManager."
 )
