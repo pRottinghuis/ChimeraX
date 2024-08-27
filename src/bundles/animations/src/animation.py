@@ -24,6 +24,15 @@ class Animation(StateManager):
             return
         self.keyframes[scene_name] = time
 
+    def edit_keyframe(self, keyframe_name, time):
+        if keyframe_name not in self.keyframes:
+            self.session.logger.warning(f"Can't edit keyframe for scene {keyframe_name} because it doesn't exist.")
+            return
+        if not isinstance(time, (int, float)):
+            self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because time must be an integer or float.")
+            return
+        self.keyframes[keyframe_name] = time
+
     def play(self):
         pass
 
