@@ -49,6 +49,8 @@ will be displayed without the ChimeraX- prefix.
 
     <ChimeraXClassifier>ChimeraX :: Command :: animations keyframe :: General ::
       Save a scene to the sessions scene manager. </ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: animations timeline :: General ::
+      Show a timeline of the animation in the log. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
