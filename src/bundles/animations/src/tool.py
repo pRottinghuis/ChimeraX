@@ -1,8 +1,7 @@
-
 from chimerax.core.tools import ToolInstance
 
 
-class TutorialTool(ToolInstance):
+class AnimationsTool(ToolInstance):
 
     SESSION_ENDURING = False    # Does this instance persist when session closes
     SESSION_SAVE = True         # We do save/restore in sessions
