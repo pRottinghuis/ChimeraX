@@ -43,6 +43,14 @@ class Animation(StateManager):
             return
         self.keyframes[keyframe_name] = time
 
+    def delete_keyframe(self, keyframe_name):
+        if keyframe_name not in self.keyframes:
+            self.session.logger.warning(f"Can't delete keyframe {keyframe_name} because it doesn't exist.")
+            return
+        del self.keyframes[keyframe_name]
+        self.session.logger.info(f"Deleted keyframe {keyframe_name}")
+
+
     def play(self):
         pass
 
