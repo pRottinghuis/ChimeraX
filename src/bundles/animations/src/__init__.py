@@ -24,7 +24,7 @@ class _MyAPI(BundleAPI):
     def initialize(session, bundle_info):
         """Install scene manager into existing session"""
         from .animation import Animation
-        session.add_state_manager(Animation(session))
+        session.add_state_manager("animations", Animation(session))
         return
 
     @staticmethod
