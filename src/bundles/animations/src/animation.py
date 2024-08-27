@@ -20,7 +20,8 @@ class Animation(StateManager):
             self.session.logger.warning(f"Can't create keyframe for scene {scene_name} because it doesn't exist.")
             return
         if not isinstance(time, (int, float)):
-            self.session.logger.warning("Can't create keyframe because time must be an integer or float.")
+            self.session.logger.warning(
+                f"Can't create keyframe for scene {scene_name} because time must be an integer or float.")
             return
         self.keyframes[scene_name] = time
 
