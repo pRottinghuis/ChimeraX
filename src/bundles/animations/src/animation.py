@@ -25,6 +25,9 @@ class Animation(StateManager):
     def play(self):
         pass
 
+    def reset_state(self, session):
+        self.clear()
+
     def take_snapshot(self, session, flags):
         return {
             'version': self.version
