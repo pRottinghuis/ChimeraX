@@ -38,6 +38,11 @@ def keyframe(session, action: str, keyframe_name: str, time: int | float):
             print("Time must be an integer or float")
             return
         animation_mgr.edit_keyframe_time(keyframe_name, time)
+    elif action == "delete":
+        if not animation_mgr.keyframe_exists(keyframe_name):
+            print(f"Keyframe {keyframe_name} does not exist")
+            return
+        animation_mgr.delete_keyframe(keyframe_name)
     else:
         print(f"Action {action} not recognized. Options are add, edit, delete.")
 
