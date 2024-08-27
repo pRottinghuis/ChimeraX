@@ -12,6 +12,7 @@ class Animation(StateManager):
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
         else:
+            raise NotImplementedError("Restoring from snapshot not implemented yet.")
             self.animation_data = animation_data
 
     def add_keyframe(self, scene_name, time):
