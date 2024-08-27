@@ -29,6 +29,7 @@ class Animation(StateManager):
                 f"keyframe.")
             return
         self.keyframes[scene_name] = time
+        self._sort_keyframes()
 
     def edit_keyframe_time(self, keyframe_name, time):
         if keyframe_name not in self.keyframes:
@@ -42,6 +43,7 @@ class Animation(StateManager):
                 f"Can't edit keyframe {keyframe_name} because time {time} is already taken by a different keyframe.")
             return
         self.keyframes[keyframe_name] = time
+        self._sort_keyframes()
 
     def delete_keyframe(self, keyframe_name):
         if keyframe_name not in self.keyframes:
@@ -59,6 +61,10 @@ class Animation(StateManager):
 
     def play(self):
         pass
+
+    def _sort_keyframes(self):
+        """Sort keyframes by time. Should be called after any changes to keyframes."""
+        self.keyframes = dict(sorted(self.keyframes.items(), key=lambda item: item[1]))
 
     def _format_time(self, time):
         """Convert time in seconds to min:sec:millisecond format."""
