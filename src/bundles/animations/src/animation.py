@@ -37,6 +37,9 @@ class Animation(StateManager):
     def play(self):
         pass
 
+    def keyframe_exists(self, keyframe_name):
+        return keyframe_name in self.keyframes
+
     def reset_state(self, session):
         self.clear()
 
