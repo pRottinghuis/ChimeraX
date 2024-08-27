@@ -46,6 +46,9 @@ will be displayed without the ChimeraX- prefix.
     <!-- Register a graphical interface tool -->
     <ChimeraXClassifier>ChimeraX :: Tool :: Tutorial (Qt) ::
       General :: Graphical interface example</ChimeraXClassifier>
+
+    <ChimeraXClassifier>ChimeraX :: Command :: animations keyframe :: General ::
+      Save a scene to the sessions scene manager. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
