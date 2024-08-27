@@ -17,6 +17,12 @@ class Animation(StateManager):
             self.animation_data = animation_data
 
     def add_keyframe(self, keyframe_name, time):
+        """
+        Add a keyframe to the animation. The keyframe will be created at the time specified.
+        """
+        if self.keyframe_exists(keyframe_name):
+            self.session.logger.warning(f"Can't create keyframe {keyframe_name} because it already exists.")
+            return
         scenes = self.session.scenes.get_scene(keyframe_name)
         if scenes is None:
             self.session.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
