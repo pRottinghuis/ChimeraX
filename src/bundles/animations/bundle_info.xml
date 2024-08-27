@@ -7,7 +7,7 @@ will be displayed without the ChimeraX- prefix.
 
 <BundleInfo name="ChimeraX-Animations"
 	    version="0.0" package="chimerax.animations"
-  	    minSessionVersion="1" maxSessionVersion="1">
+  	    customInit="true" minSessionVersion="1" maxSessionVersion="1">
 
   <!-- Additional information about bundle source -->
   <Author>UCSF RBVI</Author>
