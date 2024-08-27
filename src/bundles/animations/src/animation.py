@@ -50,9 +50,22 @@ class Animation(StateManager):
         del self.keyframes[keyframe_name]
         self.session.logger.info(f"Deleted keyframe {keyframe_name}")
 
+    def list_keyframes(self) -> list[str]:
+        """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
+        keyframe_list = []
+        for keyframe_name, time in self.keyframes.items():
+            keyframe_list.append(f"{keyframe_name}: {self._format_time(time)}")
+        return keyframe_list
 
     def play(self):
         pass
+
+    def _format_time(self, time):
+        """Convert time in seconds to min:sec:millisecond format."""
+        minutes = int(time // 60)
+        seconds = int(time % 60)
+        milliseconds = round((time - int(time)) * 1000, 2)
+        return f"{minutes}:{seconds:02}:{milliseconds:05.2f}"
 
     def keyframe_exists(self, keyframe_name):
         return keyframe_name in self.keyframes
