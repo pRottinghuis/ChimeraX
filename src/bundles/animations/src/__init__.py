@@ -21,6 +21,13 @@ class _MyAPI(BundleAPI):
         raise ValueError("Unknown class name '%s'" % class_name)
 
     @staticmethod
+    def initialize(session, bundle_info):
+        """Install scene manager into existing session"""
+        from .animation import Animation
+        session.add_state_manager(Animation(session))
+        return
+
+    @staticmethod
     def register_command(bi, ci, logger):
         from chimerax.core.commands import register
         from . import cmd
