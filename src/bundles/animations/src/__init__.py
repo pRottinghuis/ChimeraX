@@ -1,5 +1,5 @@
 from chimerax.core.toolshed import BundleAPI
-from tool import AnimationsTool
+from .tool import AnimationsTool
 
 
 class _MyAPI(BundleAPI):
@@ -9,7 +9,6 @@ class _MyAPI(BundleAPI):
     @staticmethod
     def start_tool(session, bi, ti):
         if ti.name == "Animations":
-            from . import tool
             return AnimationsTool(session, ti.name)
         raise ValueError("trying to start unknown tool: %s" % ti.name)
 
