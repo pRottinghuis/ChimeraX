@@ -11,6 +11,7 @@ class Animation(StateManager):
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
+            self.length = 5 # in seconds
         else:
             raise NotImplementedError("Restoring from snapshot not implemented yet.")
             self.animation_data = animation_data
@@ -20,14 +21,8 @@ class Animation(StateManager):
         if scenes is None:
             self.session.logger.warning(f"Can't create keyframe for scene {scene_name} because it doesn't exist.")
             return
-        if not isinstance(time, (int, float)):
-            self.session.logger.warning(
-                f"Can't create keyframe for scene {scene_name} because time must be an integer or float.")
-            return
-        if not self.is_time_available(time):
-            self.session.logger.warning(
-                f"Can't create keyframe for scene {scene_name} because time {time} is already taken by a different "
-                f"keyframe.")
+        if not self.validate_time(time):
+            self.logger.warning(f"Can't create keyframe {scene_name} because time {time} is invalid.")
             return
         self.keyframes[scene_name] = time
         self._sort_keyframes()
@@ -36,12 +31,8 @@ class Animation(StateManager):
         if keyframe_name not in self.keyframes:
             self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
-        if not isinstance(time, (int, float)):
-            self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because time must be an integer or float.")
-            return
-        if not self.is_time_available(time):
-            self.session.logger.warning(
-                f"Can't edit keyframe {keyframe_name} because time {time} is already taken by a different keyframe.")
+        if not self.validate_time(time):
+            self.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
             return
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
@@ -67,6 +58,18 @@ class Animation(StateManager):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
         self.keyframes = dict(sorted(self.keyframes.items(), key=lambda item: item[1]))
 
+    def validate_time(self, time):
+        if not isinstance(time, (int, float)):
+            self.session.logger.warning(f"Time must be an integer or float")
+            return False
+        if time < 0 | time > self.length:
+            self.session.logger.warning(f"Time must be between 0 and {self.length}")
+            return False
+        if time in self.keyframes.values():
+            self.session.logger.warning(f"Time {time} is already taken by a different keyframe.")
+            return False
+        return True
+
     def _format_time(self, time):
         """Convert time in seconds to min:sec.__ format."""
         minutes = int(time // 60)
@@ -76,10 +79,6 @@ class Animation(StateManager):
 
     def keyframe_exists(self, keyframe_name):
         return keyframe_name in self.keyframes
-
-    def is_time_available(self, time):
-        """Check if the time is available for a new/move keyframe. Don't allow more than 1 keyframe at the same time."""
-        return time not in self.keyframes.values()
 
     def reset_state(self, session):
         self.clear()
