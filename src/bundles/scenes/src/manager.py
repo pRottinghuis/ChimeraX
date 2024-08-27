@@ -114,3 +114,6 @@ class SceneManager(StateManager):
         for scene_name, scene_snapshot in data['scenes'].items():
             scene = Scene.restore_snapshot(self.session, scene_snapshot)
             self.scenes[scene_name] = scene
+
+    def get_scene(self, scene_name):
+        return self.scenes.get(scene_name)
