@@ -45,7 +45,7 @@ def keyframe(session, action: str, keyframe_name: str, time: int | float):
 keyframe_desc = CmdDesc(
     required=[
         ("action", StringArg),
-        ("scene_name", StringArg),
+        ("keyframe_name", StringArg),
         ("time", FloatArg)
     ],
     synopsis="Create a keyframe in the animation StateManager."
