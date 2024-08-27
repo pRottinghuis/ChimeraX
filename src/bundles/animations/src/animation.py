@@ -17,9 +17,11 @@ class Animation(StateManager):
     def add_keyframe(self, scene_name, time):
         scenes = self.session.scenes.get_scene(scene_name)
         if scenes is None:
-            print(f"Scene {scene_name} does not exist")
+            self.session.logger.warning(f"Can't create keyframe for scene {scene_name} because it doesn't exist.")
             return
-
+        if not isinstance(time, (int, float)):
+            self.session.logger.warning("Can't create keyframe because time must be an integer or float.")
+            return
         self.keyframes[scene_name] = time
 
     def play(self):
