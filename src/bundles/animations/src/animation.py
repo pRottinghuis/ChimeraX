@@ -23,6 +23,11 @@ class Animation(StateManager):
             self.session.logger.warning(
                 f"Can't create keyframe for scene {scene_name} because time must be an integer or float.")
             return
+        if not self.is_time_available(time):
+            self.session.logger.warning(
+                f"Can't create keyframe for scene {scene_name} because time {time} is already taken by a different "
+                f"keyframe.")
+            return
         self.keyframes[scene_name] = time
 
     def edit_keyframe_time(self, keyframe_name, time):
@@ -32,6 +37,10 @@ class Animation(StateManager):
         if not isinstance(time, (int, float)):
             self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because time must be an integer or float.")
             return
+        if not self.is_time_available(time):
+            self.session.logger.warning(
+                f"Can't edit keyframe {keyframe_name} because time {time} is already taken by a different keyframe.")
+            return
         self.keyframes[keyframe_name] = time
 
     def play(self):
@@ -39,6 +48,10 @@ class Animation(StateManager):
 
     def keyframe_exists(self, keyframe_name):
         return keyframe_name in self.keyframes
+
+    def is_time_available(self, time):
+        """Check if the time is available for a new/move keyframe. Don't allow more than 1 keyframe at the same time."""
+        return time not in self.keyframes.values()
 
     def reset_state(self, session):
         self.clear()
