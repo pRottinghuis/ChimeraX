@@ -16,15 +16,15 @@ class Animation(StateManager):
             raise NotImplementedError("Restoring from snapshot not implemented yet.")
             self.animation_data = animation_data
 
-    def add_keyframe(self, scene_name, time):
-        scenes = self.session.scenes.get_scene(scene_name)
+    def add_keyframe(self, keyframe_name, time):
+        scenes = self.session.scenes.get_scene(keyframe_name)
         if scenes is None:
-            self.session.logger.warning(f"Can't create keyframe for scene {scene_name} because it doesn't exist.")
+            self.session.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
             return
         if not self.validate_time(time):
-            self.logger.warning(f"Can't create keyframe {scene_name} because time {time} is invalid.")
+            self.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
             return
-        self.keyframes[scene_name] = time
+        self.keyframes[keyframe_name] = time
         self._sort_keyframes()
 
     def edit_keyframe_time(self, keyframe_name, time):
