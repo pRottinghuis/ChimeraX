@@ -66,6 +66,9 @@ class Animation(StateManager):
         return keyframe_list
 
     def preview(self, time):
+        if not isinstance(time, (int, float)):
+            self.session.logger.warning(f"Time must be an integer or float")
+            return
         if time < 0 or time > self.length:
             self.session.logger.warning(f"Time must be between 0 and {self.length}")
             return
