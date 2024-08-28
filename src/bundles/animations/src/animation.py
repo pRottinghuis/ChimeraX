@@ -143,6 +143,9 @@ class Animation(StateManager):
     def keyframe_exists(self, keyframe_name):
         return keyframe_name in self.keyframes
 
+    def get_num_keyframes(self):
+        return len(self.keyframes)
+
     def reset_state(self, session):
         self.clear()
 
