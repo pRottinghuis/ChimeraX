@@ -72,7 +72,11 @@ class Animation(StateManager):
         if time < 0 or time > self.length:
             self.session.logger.warning(f"Time must be between 0 and {self.length}")
             return
-        step = self.fps * time
+        step = round(self.fps * time)
+        if step >= len(self._lerp_steps):
+            self.session.logger.warning(f"Can't preview animation at time {self._format_time(time)} because trying to "
+                                        f"access frame: {step} out of range: {len(self._lerp_steps)}.")
+            return
         scene1, scene2, fraction = self._lerp_steps[step]
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
         self.session.logger.info(f"Previewing animation at time {self._format_time(time)}")
