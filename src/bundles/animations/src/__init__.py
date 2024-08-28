@@ -17,6 +17,9 @@ class _MyAPI(BundleAPI):
         # class_name will be a string
         if class_name == "AnimationsTool":
             return AnimationsTool
+        elif class_name == "Animation":
+            from .animation import Animation
+            return Animation
         raise ValueError("Unknown class name '%s'" % class_name)
 
     @staticmethod
