@@ -33,7 +33,7 @@ class Animation(StateManager):
             self.session.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
             return
         if not self.validate_time(time):
-            self.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
+            self.session.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
             return
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
