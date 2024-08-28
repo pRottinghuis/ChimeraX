@@ -55,6 +55,8 @@ will be displayed without the ChimeraX- prefix.
       Play the animation in the model viewer. </ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: animations preview :: General ::
       Preview a frame of the animation in the model viewer. </ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: animations record :: General ::
+      Record the animation to a desired file. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>

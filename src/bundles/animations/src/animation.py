@@ -225,6 +225,9 @@ class Animation(StateManager):
     def get_num_keyframes(self):
         return len(self.keyframes)
 
+    def get_frame_rate(self):
+        return self.fps
+
     def reset_state(self, session):
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True

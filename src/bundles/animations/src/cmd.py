@@ -1,4 +1,4 @@
-from chimerax.core.commands import run, CmdDesc, register, StringArg, FloatArg, BoolArg
+from chimerax.core.commands import run, CmdDesc, register, StringArg, FloatArg, BoolArg, FileNameArg
 
 from typing import Optional
 
@@ -16,6 +16,9 @@ def register_command(command_name, logger):
     elif command_name == "animations preview":
         func = preview
         desc = preview_desc
+    elif command_name == "animations record":
+        func = record
+        desc = record_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
@@ -131,4 +134,28 @@ preview_desc = CmdDesc(
         ("time", FloatArg)
     ],
     synopsis="Preview the animation at a specific time."
+)
+
+
+def record(session, save_location):
+    """
+    Record the animation using the movie bundle.
+    :param session: The current session.
+    """
+    animation_mgr = session.get_state_manager("animations")
+    if animation_mgr.get_num_keyframes() < 1:
+        print("Need at least 1 keyframes to record the animation.")
+        return
+
+    run(session, "movie record")
+    play(session)
+    run(session, "movie stop")
+    run(session, f"movie encode {save_location} framerate {animation_mgr.get_frame_rate()}")
+
+
+record_desc = CmdDesc(
+    required=[
+        ("save_location", FileNameArg)
+    ],
+    synopsis="Record the animation."
 )
