@@ -72,6 +72,10 @@ class Animation(StateManager):
         if time < 0 or time > self.length:
             self.session.logger.warning(f"Time must be between 0 and {self.length}")
             return
+
+        # make sure the interpolation steps are up to date
+        self._try_frame_refresh()
+
         step = round(self.fps * time)
         if step >= len(self._lerp_steps):
             self.session.logger.warning(f"Can't preview animation at time {self._format_time(time)} because trying to "
@@ -82,9 +86,7 @@ class Animation(StateManager):
         self.session.logger.info(f"Previewing animation at time {self._format_time(time)}")
 
     def play(self):
-        if self._need_frames_update:
-            self._gen_lerp_steps()
-            self._need_frames_update = False
+        self._try_frame_refresh()
 
         # callback function for each frame
         def frame_cb(session, f):
@@ -152,6 +154,11 @@ class Animation(StateManager):
     def _sort_keyframes(self):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
         self.keyframes = dict(sorted(self.keyframes.items(), key=lambda item: item[1]))
+
+    def _try_frame_refresh(self):
+        if self._need_frames_update:
+            self._gen_lerp_steps()
+            self._need_frames_update = False
 
     def validate_time(self, time):
         if not isinstance(time, (int, float)):
