@@ -8,6 +8,9 @@ class Animation(StateManager):
 
     def __init__(self, session, *, animation_data=None):
         self.session = session
+        # dict of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
+        # steps
+        self._lerp_steps: [(str, str, int | float)] = []
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
@@ -59,6 +62,56 @@ class Animation(StateManager):
 
     def play(self):
         pass
+
+    def _gen_lerp_steps(self):
+        # TODO make sure that there is at least 1 keyframe in the animation
+
+        # tuple val to store previously iterated keyframe (keyframe name, time).
+        prev_kf_name = None
+        prev_kf_time = None
+        # ittr all the keyframes
+        for keyframe_name, time in self.keyframes.items():
+            # calculate delta time between keyframes. If prev_kf is None, then delta t is keyframe time minus start of
+            # animation time
+            if prev_kf_time is None:
+                d_time = time - 0
+            else:
+                d_time = time - prev_kf_time
+
+            if prev_kf_name is None:
+                # if prev_kf is None, then we are at the first keyframe. Assume the first keyframe is the state of
+                # the animation between 0 and the first keyframe time, so we essentially make duplicate
+                # frames from time 0 to the first keyframe
+                kf_lerp_steps = self._gen_ntime_lerp_segment(keyframe_name, keyframe_name, d_time)
+            else:
+                kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, keyframe_name, d_time)
+
+            # append the lerp steps connecting the two keyframes to the main lerp steps list
+            self._lerp_steps.extend(kf_lerp_steps)
+
+            # reset previous ittr keyframe vars
+            prev_kf_name = keyframe_name
+            prev_kf_time = time
+
+        # Still need to add the last keyframe to the end of the animation. Same deal as the 0:00 - first keyframe with
+        # assuming the last keyframe is the state of the animation between the last keyframe and the end of the
+        # animation
+
+        # calculate delta time between last keyframe and end of animation time
+        d_time = self.length - prev_kf_time
+        # create lerp steps between last keyframe and end of animation
+        kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, prev_kf_name, d_time)
+
+
+    def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
+        # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
+        n_frames = round(d_time * self.fps)
+
+        # create an array of % decimals that linearly range (0.0, 1.0) in n_frames steps
+        fractions = [i / (n_frames - 1) for i in range(n_frames)]
+
+        # return an array of tuples of (kf1, kf2, fraction) for each fraction in fractions
+        return [(kf1, kf2, f) for f in fractions]
 
     def _sort_keyframes(self):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
