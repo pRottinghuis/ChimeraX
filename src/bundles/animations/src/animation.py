@@ -17,8 +17,8 @@ class Animation(StateManager):
             self.keyframes: {str, float} = {}
             self.length = 5  # in seconds
         else:
-            raise NotImplementedError("Restoring from snapshot not implemented yet.")
-            self.animation_data = animation_data
+            self.keyframes = animation_data['keyframes']
+            self.length = animation_data['length']
 
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
         """
@@ -226,13 +226,26 @@ class Animation(StateManager):
         return len(self.keyframes)
 
     def reset_state(self, session):
-        self.clear()
+        self._lerp_steps: [(str, str, int | float)] = []
+        self._need_frames_update = True
+        self.keyframes: {str, float} = {}
+        self.length = 5  # in seconds
 
     def take_snapshot(self, session, flags):
         return {
-            'version': self.version
+            'version': self.version,
+            'keyframes': self.keyframes,
+            'length': self.length,
         }
 
     @staticmethod
     def restore_snapshot(session, data):
+        if Animation.version != data['version']:
+            raise ValueError(f"Can't restore snapshot version {data['version']} to version {Animation.version}")
+
+        for scene_name in data['keyframes'].keys():
+            if not session.scenes.get_scene(scene_name):
+                session.logger.warning(f"Can't restore keyframe {scene_name} because the scene doesn't exist.")
+                del data['keyframes'][scene_name]
+
         return Animation(session, animation_data=data)
