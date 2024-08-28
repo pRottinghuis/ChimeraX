@@ -152,6 +152,9 @@ class Animation(StateManager):
     def time_in_range(self, time):
         return 0 <= time <= self.length
 
+    def get_time_length(self):
+        return self.length
+
     def _format_time(self, time):
         """Convert time in seconds to min:sec.__ format."""
         minutes = int(time // 60)
