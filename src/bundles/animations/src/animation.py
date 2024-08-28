@@ -87,6 +87,8 @@ class Animation(StateManager):
     def play(self, reverse=False):
         self._try_frame_refresh()
 
+        self.session.logger.status(f"Playing animation...")
+
         # callback function for each frame
         def frame_cb(session, f):
             if reverse:
@@ -105,6 +107,8 @@ class Animation(StateManager):
         if len(self.keyframes) < 1:
             self.session.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
+
+        self.session.logger.info(f"Generating interpolation steps for animation...")
 
         # tuple val to store previously iterated keyframe (keyframe name, time).
         prev_kf_name = None
@@ -143,6 +147,8 @@ class Animation(StateManager):
         kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, prev_kf_name, d_time)
         # append the lerp steps connecting the last keyframe to the end of the animation to the main lerp steps list
         self._lerp_steps.extend(kf_lerp_steps)
+
+        self.session.logger.info(f"Finished generating interpolation steps for animation.")
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
