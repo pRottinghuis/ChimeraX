@@ -64,7 +64,6 @@ class Animation(StateManager):
         pass
 
     def _gen_lerp_steps(self):
-        # TODO make sure that there is at least 1 keyframe in the animation
         if len(self.keyframes) < 1:
             self.session.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
