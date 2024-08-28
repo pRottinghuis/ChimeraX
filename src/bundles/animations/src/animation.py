@@ -141,13 +141,16 @@ class Animation(StateManager):
         if not isinstance(time, (int, float)):
             self.session.logger.warning(f"Time must be an integer or float")
             return False
-        if time < 0 or time > self.length:
+        if self.time_in_range(time):
             self.session.logger.warning(f"Time must be between 0 and {self.length}")
             return False
         if time in self.keyframes.values():
             self.session.logger.warning(f"Time {time} is already taken by a different keyframe.")
             return False
         return True
+
+    def time_in_range(self, time):
+        return 0 <= time <= self.length
 
     def _format_time(self, time):
         """Convert time in seconds to min:sec.__ format."""
