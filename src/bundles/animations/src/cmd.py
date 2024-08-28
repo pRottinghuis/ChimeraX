@@ -13,6 +13,9 @@ def register_command(command_name, logger):
     elif command_name == "animations play":
         func = play
         desc = play_desc
+    elif command_name == "animations preview":
+        func = preview
+        desc = preview_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
