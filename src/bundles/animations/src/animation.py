@@ -65,6 +65,15 @@ class Animation(StateManager):
             keyframe_list.append(f"{keyframe_name}: {self._format_time(time)}")
         return keyframe_list
 
+    def preview(self, time):
+        if time < 0 or time > self.length:
+            self.session.logger.warning(f"Time must be between 0 and {self.length}")
+            return
+        step = self.fps * time
+        scene1, scene2, fraction = self._lerp_steps[step]
+        self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
+        self.session.logger.info(f"Previewing animation at time {self._format_time(time)}")
+
     def play(self):
         if self._need_frames_update:
             self._gen_lerp_steps()
