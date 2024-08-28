@@ -10,6 +10,9 @@ def register_command(command_name, logger):
     elif command_name == "animations timeline":
         func = timeline
         desc = timeline_desc
+    elif command_name == "animations play":
+        func = play
+        desc = play_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
@@ -75,4 +78,21 @@ def timeline(session):
 
 timeline_desc = CmdDesc(
     synopsis="List all keyframes in the animation StateManager."
+)
+
+
+def play(session):
+    """
+    Play the animation in the StateManager.
+    :param session: The current session.
+    """
+    animation_mgr = session.get_state_manager("animations")
+    if animation_mgr.get_num_keyframes() < 1:
+        print("Need at least 1 keyframes to play the animation.")
+        return
+    animation_mgr.play()
+
+
+play_desc = CmdDesc(
+    synopsis="Play the animation."
 )

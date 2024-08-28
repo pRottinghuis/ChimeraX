@@ -51,6 +51,8 @@ will be displayed without the ChimeraX- prefix.
       Save a scene to the sessions scene manager. </ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: animations timeline :: General ::
       Show a timeline of the animation in the log. </ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: animations play :: General ::
+      Show a timeline of the animation in the log. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
