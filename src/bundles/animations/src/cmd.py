@@ -21,7 +21,7 @@ def register_command(command_name, logger):
     register(command_name, desc, func)
 
 
-def keyframe(session, action: str, keyframe_name: str, time: int | float):
+def keyframe(session, action: str, keyframe_name: str, time: int | float | None = None):
     """
     Chimnerax Command for edit actions on a keyframe in the animation StateManager. add/edit/delete keyframes.
     Add keyframe will use the scenes scene command to create a new scene to add to the state manager.
@@ -34,7 +34,7 @@ def keyframe(session, action: str, keyframe_name: str, time: int | float):
     animation_mgr = session.get_state_manager("animations")
 
     if action == "add":
-        if not isinstance(time, (int, float)):
+        if time is not None and not isinstance(time, (int, float)):
             print("Time must be an integer or float")
             return
         if animation_mgr.keyframe_exists(keyframe_name):
@@ -63,6 +63,8 @@ keyframe_desc = CmdDesc(
     required=[
         ("action", StringArg),
         ("keyframe_name", StringArg),
+    ],
+    keyword=[
         ("time", FloatArg)
     ],
     synopsis="Create a keyframe in the animation StateManager."
