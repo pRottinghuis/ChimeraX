@@ -11,6 +11,7 @@ class Animation(StateManager):
         # dict of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
         self._lerp_steps: [(str, str, int | float)] = []
+        self._need_frames_update = True
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
@@ -35,6 +36,8 @@ class Animation(StateManager):
             return
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
+        self._need_frames_update = True
+
 
     def edit_keyframe_time(self, keyframe_name, time):
         if keyframe_name not in self.keyframes:
@@ -45,12 +48,15 @@ class Animation(StateManager):
             return
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
+        self._need_frames_update = True
+
 
     def delete_keyframe(self, keyframe_name):
         if keyframe_name not in self.keyframes:
             self.session.logger.warning(f"Can't delete keyframe {keyframe_name} because it doesn't exist.")
             return
         del self.keyframes[keyframe_name]
+        self._need_frames_update = True
         self.session.logger.info(f"Deleted keyframe {keyframe_name}")
 
     def list_keyframes(self) -> list[str]:
@@ -61,7 +67,9 @@ class Animation(StateManager):
         return keyframe_list
 
     def play(self):
-        self._gen_lerp_steps()
+        if self._need_frames_update:
+            self._gen_lerp_steps()
+            self._need_frames_update = False
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
