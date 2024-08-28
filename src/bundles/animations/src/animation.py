@@ -1,4 +1,5 @@
 from chimerax.core.state import StateManager
+from chimerax.core.commands.motion import CallForNFrames
 
 
 class Animation(StateManager):
@@ -38,7 +39,6 @@ class Animation(StateManager):
         self._sort_keyframes()
         self._need_frames_update = True
 
-
     def edit_keyframe_time(self, keyframe_name, time):
         if keyframe_name not in self.keyframes:
             self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
@@ -49,7 +49,6 @@ class Animation(StateManager):
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
         self._need_frames_update = True
-
 
     def delete_keyframe(self, keyframe_name):
         if keyframe_name not in self.keyframes:
@@ -113,7 +112,6 @@ class Animation(StateManager):
         kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, prev_kf_name, d_time)
         # append the lerp steps connecting the last keyframe to the end of the animation to the main lerp steps list
         self._lerp_steps.extend(kf_lerp_steps)
-
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
