@@ -52,7 +52,7 @@ will be displayed without the ChimeraX- prefix.
     <ChimeraXClassifier>ChimeraX :: Command :: animations timeline :: General ::
       Show a timeline of the animation in the log. </ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: animations play :: General ::
-      Show a timeline of the animation in the log. </ChimeraXClassifier>
+      Play the animation in the model viewer. </ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: animations preview :: General ::
       Preview a frame of the animation in the model viewer. </ChimeraXClassifier>
   </Classifiers>
