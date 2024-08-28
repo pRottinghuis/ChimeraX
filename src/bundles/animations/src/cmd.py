@@ -1,4 +1,4 @@
-from chimerax.core.commands import run, CmdDesc, register, StringArg, FloatArg
+from chimerax.core.commands import run, CmdDesc, register, StringArg, FloatArg, BoolArg
 
 from typing import Optional
 
@@ -84,19 +84,23 @@ timeline_desc = CmdDesc(
 )
 
 
-def play(session):
+def play(session, reverse=False):
     """
     Play the animation in the StateManager.
     :param session: The current session.
+    :param reverse: Play the animation in reverse.
     """
     animation_mgr = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to play the animation.")
         return
-    animation_mgr.play()
+    animation_mgr.play(reverse)
 
 
 play_desc = CmdDesc(
+    keyword=[
+        ("reverse", BoolArg)
+    ],
     synopsis="Play the animation."
 )
 

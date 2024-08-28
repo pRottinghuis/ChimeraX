@@ -85,13 +85,17 @@ class Animation(StateManager):
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
         self.session.logger.info(f"Previewing animation at time {self._format_time(time)}")
 
-    def play(self):
+    def play(self, reverse=False):
         self._try_frame_refresh()
 
         # callback function for each frame
         def frame_cb(session, f):
+            if reverse:
+                frame_num = len(self._lerp_steps) - f - 1
+            else:
+                frame_num = f
             # get the lerp step for this frame
-            lerp_step = self._lerp_steps[f]
+            lerp_step = self._lerp_steps[frame_num]
             scene1, scene2, fraction = lerp_step
             self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
 
