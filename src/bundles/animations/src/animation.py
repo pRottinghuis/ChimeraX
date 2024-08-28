@@ -3,7 +3,6 @@ from chimerax.core.commands.motion import CallForNFrames
 
 
 class Animation(StateManager):
-
     version = 0
     fps = 144
 
@@ -16,7 +15,7 @@ class Animation(StateManager):
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
-            self.length = 5 # in seconds
+            self.length = 5  # in seconds
         else:
             raise NotImplementedError("Restoring from snapshot not implemented yet.")
             self.animation_data = animation_data
