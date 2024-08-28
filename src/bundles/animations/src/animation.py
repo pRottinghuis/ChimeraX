@@ -190,6 +190,10 @@ class Animation(StateManager):
         return list(self.keyframes.values())[-1]
 
     def validate_time(self, time):
+        """
+        Validate time for keyframe. Time must be a number, between 0 and the length of the animation, and not already
+        taken
+        """
         if not isinstance(time, (int, float)):
             self.session.logger.warning(f"Time must be an integer or float")
             return False
