@@ -181,6 +181,14 @@ class Animation(StateManager):
             self._gen_lerp_steps()
             self._need_frames_update = False
 
+    def _last_kf_time(self):
+        """
+        Get the time of the last keyframe. If there are no keyframes, return 0
+        """
+        if len(self.keyframes) < 1:
+            return 0
+        return list(self.keyframes.values())[-1]
+
     def validate_time(self, time):
         if not isinstance(time, (int, float)):
             self.session.logger.warning(f"Time must be an integer or float")
