@@ -99,8 +99,10 @@ class Animation(StateManager):
 
         # calculate delta time between last keyframe and end of animation time
         d_time = self.length - prev_kf_time
-        # create lerp steps between last keyframe and end of animation
+        # create lerp steps between last keyframe and end of animation. prev_kf will be the last keyframe bc of the loop
         kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, prev_kf_name, d_time)
+        # append the lerp steps connecting the last keyframe to the end of the animation to the main lerp steps list
+        self._lerp_steps.extend(kf_lerp_steps)
 
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
