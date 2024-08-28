@@ -61,7 +61,7 @@ class Animation(StateManager):
         return keyframe_list
 
     def play(self):
-        pass
+        self._gen_lerp_steps()
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
