@@ -20,10 +20,20 @@ class Animation(StateManager):
             raise NotImplementedError("Restoring from snapshot not implemented yet.")
             self.animation_data = animation_data
 
-    def add_keyframe(self, keyframe_name, time):
+    def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
         """
         Add a keyframe to the animation. The keyframe will be created at the time specified.
         """
+
+        # If there is no time param specified, then the keyframe should be created 1 second after the last keyframe or
+        # 1 second after the start of the animation if there are no keyframes.
+        if time is None:
+            kf_time = self._last_kf_time() + 1
+            if kf_time > self.length:
+                self.length = kf_time
+        else:
+            kf_time = time
+
         if self.keyframe_exists(keyframe_name):
             self.session.logger.warning(f"Can't create keyframe {keyframe_name} because it already exists.")
             return
@@ -31,13 +41,13 @@ class Animation(StateManager):
         if scenes is None:
             self.session.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
             return
-        if not self.validate_time(time):
-            self.session.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
+        if not self.validate_time(kf_time):
+            self.session.logger.warning(f"Can't create keyframe {keyframe_name} because time {kf_time} is invalid.")
             return
-        self.keyframes[keyframe_name] = time
+        self.keyframes[keyframe_name] = kf_time
         self._sort_keyframes()
         self._need_frames_update = True
-        self.session.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(time)}")
+        self.session.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(kf_time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
         if keyframe_name not in self.keyframes:
