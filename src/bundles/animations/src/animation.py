@@ -5,7 +5,7 @@ from chimerax.core.commands.motion import CallForNFrames
 class Animation(StateManager):
 
     version = 0
-    fps = 60
+    fps = 144
 
     def __init__(self, session, *, animation_data=None):
         self.session = session
@@ -69,6 +69,16 @@ class Animation(StateManager):
         if self._need_frames_update:
             self._gen_lerp_steps()
             self._need_frames_update = False
+
+        # callback function for each frame
+        def frame_cb(session, f):
+            # get the lerp step for this frame
+            lerp_step = self._lerp_steps[f]
+            scene1, scene2, fraction = lerp_step
+            self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
+
+        # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
+        CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
