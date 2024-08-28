@@ -37,6 +37,7 @@ class Animation(StateManager):
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
         self._need_frames_update = True
+        self.session.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
         if keyframe_name not in self.keyframes:
@@ -48,6 +49,7 @@ class Animation(StateManager):
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
         self._need_frames_update = True
+        self.session.logger.info(f"Edited keyframe {keyframe_name} to time: {self._format_time(time)}")
 
     def delete_keyframe(self, keyframe_name):
         if keyframe_name not in self.keyframes:
