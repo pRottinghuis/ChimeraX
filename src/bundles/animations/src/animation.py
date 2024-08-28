@@ -157,7 +157,7 @@ class Animation(StateManager):
         if not isinstance(time, (int, float)):
             self.session.logger.warning(f"Time must be an integer or float")
             return False
-        if self.time_in_range(time):
+        if not self.time_in_range(time):
             self.session.logger.warning(f"Time must be between 0 and {self.length}")
             return False
         if time in self.keyframes.values():
