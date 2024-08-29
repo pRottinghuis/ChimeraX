@@ -7,6 +7,10 @@ class Animation(StateManager):
     fps = 144
 
     def __init__(self, session, *, animation_data=None):
+
+        # TODO - Define a trigger for when the animation is done playing. Connect a handdler that checks if a recording
+        #  is active and stops it if it is.
+
         self.session = session
         # dict of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
