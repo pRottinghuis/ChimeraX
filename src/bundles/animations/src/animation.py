@@ -214,7 +214,10 @@ class Animation(StateManager):
         if length > self.MAX_LENGTH:
             self.session.logger.warning(f"Length must be less than {self.MAX_LENGTH} seconds")
             return
+
         self.length = length
+        # make sure to update the interpolation steps after time is adjusted
+        self._need_frames_update = True
         self.session.logger.info(f"Updated animation length to {self._format_time(self.length)}")
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
