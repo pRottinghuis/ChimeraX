@@ -208,8 +208,9 @@ class Animation(StateManager):
         if not isinstance(length, (int, float)):
             self.session.logger.warning(f"Length must be an integer or float")
             return
-        if length <= 0:
-            self.session.logger.warning(f"Length must be greater than 0")
+        if length < self._last_kf_time():
+            run(self.session, "animations timeline", log=False)
+            self.session.logger.warning(f"Length must be greater than {self._last_kf_time()}")
             return
         if length > self.MAX_LENGTH:
             self.session.logger.warning(f"Length must be less than {self.MAX_LENGTH} seconds")
