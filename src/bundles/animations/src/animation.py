@@ -1,27 +1,18 @@
 from chimerax.core.state import StateManager
 from chimerax.core.commands.motion import CallForNFrames
-from chimerax.core.triggerset import TriggerSet
 
 
 class Animation(StateManager):
     version = 0
     fps = 144
 
-    FINISHED = trigger_names = ("finished",)
-
     def __init__(self, session, *, animation_data=None):
-
-        # TODO - Define a trigger for when the animation is done playing. Connect a handdler that checks if a recording
-        #  is active and stops it if it is.
-
         self.session = session
-        self.triggers = TriggerSet()
-        for trig_name in self.trigger_names:
-            self.triggers.add_trigger(trig_name)
         # dict of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
+        self._is_playing = False
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
@@ -114,14 +105,20 @@ class Animation(StateManager):
 
         # callback function for each frame
         def frame_cb(session, f):
+            self._is_playing = True
             if reverse:
                 frame_num = len(self._lerp_steps) - f - 1
+                last_frame = 0
             else:
                 frame_num = f
+                last_frame = len(self._lerp_steps) - 1
             # get the lerp step for this frame
             lerp_step = self._lerp_steps[frame_num]
             scene1, scene2, fraction = lerp_step
             self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
+            if frame_num == last_frame:
+                self._is_playing = False
+                self.session.logger.status(f"Finished playing animation.")
 
         # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
         CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
