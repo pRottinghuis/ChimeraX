@@ -1,5 +1,6 @@
 from chimerax.core.state import StateManager
 from chimerax.core.commands.motion import CallForNFrames
+from chimerax.core.commands.run import run
 
 
 class Animation(StateManager):
@@ -119,9 +120,9 @@ class Animation(StateManager):
             scene1, scene2, fraction = lerp_step
             self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
             if frame_num == last_frame:
-                self._try_end_recording()
                 self._is_playing = False
                 self.session.logger.status(f"Finished playing animation.")
+                self._try_end_recording()
 
         # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
         CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
@@ -129,8 +130,10 @@ class Animation(StateManager):
     def record(self, save_location, reverse=False):
         self.save_location = save_location
         # TODO find how movie checks valid file path and add it here before we start recording.
-        from chimerax.movie.moviecmd import movie_record
-        movie_record(self.session)
+        # Make sure the animation interpolation steps are generated before we start recording
+        self._try_frame_refresh()
+        run(self.session, "movie abort")
+        run(self.session, "movie record")
         self._is_recording = True
         self.play(reverse)
 
@@ -198,9 +201,8 @@ class Animation(StateManager):
         save file path.
         """
         if self._is_recording:
-            from chimerax.movie.moviecmd import movie_encode, movie_stop
-            movie_stop(self.session)
-            movie_encode(self.session, self.save_location, framerate=self.fps)
+            run(self.session, "movie stop")
+            run(self.session, f"movie encode {self.save_location} framerate {self.fps}")
             self._is_recording = False
 
     def _sort_keyframes(self):
