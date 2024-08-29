@@ -47,7 +47,7 @@ def keyframe(session, action: str, keyframe_name: str, time: int | float | None 
         if animation_mgr.keyframe_exists(keyframe_name):
             print(f"Keyframe {keyframe_name} already exists")
             return
-        run(session, f"scenes scene {keyframe_name}")
+        run(session, f"scenes scene {keyframe_name}", log=False)
         animation_mgr.add_keyframe(keyframe_name, time)
     elif action == "edit":
         if not animation_mgr.keyframe_exists(keyframe_name):

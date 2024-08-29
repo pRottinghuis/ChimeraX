@@ -144,8 +144,8 @@ class Animation(StateManager):
         # TODO find how movie checks valid file path and add it here before we start recording.
         # Make sure the animation interpolation steps are generated before we start recording
         self._try_frame_refresh()
-        run(self.session, "movie abort")
-        run(self.session, "movie record")
+        run(self.session, "movie abort", log=False)
+        run(self.session, "movie record", log=False)
         self._is_recording = True
         self.play(reverse)
 
@@ -213,10 +213,10 @@ class Animation(StateManager):
         save file path.
         """
         if self._is_recording:
-            run(self.session, "movie stop")
+            run(self.session, "movie stop", log=False)
             from chimerax.movie.moviecmd import movie_encode
+            # If this command ever wants to be seen in the log would have to unpack the encode_data dict and pass it
             movie_encode(self.session, **self._encode_data)
-            # run(self.session, f"movie encode {self.save_location} framerate {self.fps}")
             self._is_recording = False
 
     def _sort_keyframes(self):
