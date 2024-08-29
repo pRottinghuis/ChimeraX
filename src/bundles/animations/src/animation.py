@@ -11,14 +11,17 @@ class Animation(StateManager):
 
     def __init__(self, session, *, animation_data=None):
         self.session = session
-        # dict of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
+        # list of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
         self._is_playing = False
         self._is_recording = False
+
+        # dict representing arguments for the movie record command.
         self._record_data = None
         self._encode_data = None
+
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
