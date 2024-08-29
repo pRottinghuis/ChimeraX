@@ -83,8 +83,10 @@ class Animation(StateManager):
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
+        keyframe_list.append(f"Start: {self._format_time(0)}")
         for keyframe_name, time in self.keyframes.items():
             keyframe_list.append(f"{keyframe_name}: {self._format_time(time)}")
+        keyframe_list.append(f"End: {self._format_time(self.length)}")
         return keyframe_list
 
     def preview(self, time):
