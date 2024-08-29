@@ -154,6 +154,9 @@ class Animation(StateManager):
             self.session.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
 
+        # reset lerp steps
+        self._lerp_steps = []
+
         self.session.logger.info(f"Generating interpolation steps for animation...")
 
         # tuple val to store previously iterated keyframe (keyframe name, time).
