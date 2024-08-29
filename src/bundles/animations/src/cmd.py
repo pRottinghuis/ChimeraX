@@ -1,5 +1,8 @@
-from chimerax.core.commands import run, CmdDesc, register, StringArg, FloatArg, BoolArg, FileNameArg
+from chimerax.core.commands import run, CmdDesc, register, ListOf, StringArg, FloatArg, BoolArg, IntArg, \
+    SaveFileNameArg, EnumOf
 from .animation import Animation
+from chimerax.movie.movie import RESET_CLEAR, RESET_KEEP, RESET_NONE
+from chimerax.movie.formats import formats, qualities
 
 from typing import Optional
 
@@ -138,22 +141,46 @@ preview_desc = CmdDesc(
 )
 
 
-def record(session, save_location):
+def record(session, output=None, format=None, quality=None, qscale=None, bitrate=None,
+           framerate=25, round_trip=False, reset_mode=RESET_CLEAR, wait=False, verbose=False):
     """
     Record the animation using the movie bundle.
-    :param session: The current session.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to record the animation.")
         return
 
-    animation_mgr.record(save_location)
+    encode_params = {
+        'session': session,
+        'output': output,
+        'format': format,
+        'quality': quality,
+        'qscale': qscale,
+        'bitrate': bitrate,
+        'framerate': framerate,
+        'round_trip': round_trip,
+        'reset_mode': reset_mode,
+        'wait': wait,
+        'verbose': verbose
+    }
+
+    animation_mgr.record(encode_data=encode_params)
 
 
+fmts = tuple(formats.keys())
+reset_modes = (RESET_CLEAR, RESET_KEEP, RESET_NONE)
 record_desc = CmdDesc(
-    required=[
-        ("save_location", FileNameArg)
-    ],
+    optional=[('output', ListOf(SaveFileNameArg))],
+    keyword=[('format', EnumOf(fmts)),
+             ('quality', EnumOf(qualities)),
+             ('qscale', IntArg),
+             ('bitrate', FloatArg),
+             ('framerate', FloatArg),
+             ('reset_mode', EnumOf(reset_modes)),
+             ('round_trip', BoolArg),
+             ('wait', BoolArg),
+             ('verbose', BoolArg),
+             ],
     synopsis="Record the animation."
 )

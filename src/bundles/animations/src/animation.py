@@ -16,6 +16,8 @@ class Animation(StateManager):
         self._is_playing = False
         self._is_recording = False
         self.save_location = None
+        self._record_data = None
+        self._encode_data = None
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
@@ -127,8 +129,15 @@ class Animation(StateManager):
         # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
         CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
 
-    def record(self, save_location, reverse=False):
-        self.save_location = save_location
+    def record(self, record_data=None, encode_data=None, reverse=False):
+        """
+        Start a recording for the animation using the chimerax.movie module.
+        :param record_data: dict representing arguments for the movie record command. If None, then the default
+        :param encode_data: dict representing arguments for the movie encode command. If None, then the default
+        :param reverse: Bool. True play in reverse False play forward.
+        """
+        self._record_data = record_data
+        self._encode_data = encode_data
         # TODO find how movie checks valid file path and add it here before we start recording.
         # Make sure the animation interpolation steps are generated before we start recording
         self._try_frame_refresh()
@@ -202,7 +211,9 @@ class Animation(StateManager):
         """
         if self._is_recording:
             run(self.session, "movie stop")
-            run(self.session, f"movie encode {self.save_location} framerate {self.fps}")
+            from chimerax.movie.moviecmd import movie_encode
+            movie_encode(self.session, **self._encode_data)
+            # run(self.session, f"movie encode {self.save_location} framerate {self.fps}")
             self._is_recording = False
 
     def _sort_keyframes(self):
