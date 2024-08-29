@@ -151,7 +151,9 @@ class Animation(StateManager):
         # Make sure the animation interpolation steps are generated before we start recording
         self._try_frame_refresh()
         run(self.session, "movie abort", log=False)
-        run(self.session, "movie record", log=False)
+        from chimerax.movie.moviecmd import movie_record
+        # If we want to ever show commands in the log this needs to be converted
+        movie_record(self.session, **self._record_data)
         self._is_recording = True
         self.play(reverse)
 
