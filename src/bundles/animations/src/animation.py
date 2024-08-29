@@ -1,10 +1,13 @@
 from chimerax.core.state import StateManager
 from chimerax.core.commands.motion import CallForNFrames
+from chimerax.core.triggerset import TriggerSet
 
 
 class Animation(StateManager):
     version = 0
     fps = 144
+
+    FINISHED = trigger_names = ("finished",)
 
     def __init__(self, session, *, animation_data=None):
 
@@ -12,6 +15,9 @@ class Animation(StateManager):
         #  is active and stops it if it is.
 
         self.session = session
+        self.triggers = TriggerSet()
+        for trig_name in self.trigger_names:
+            self.triggers.add_trigger(trig_name)
         # dict of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
         self._lerp_steps: [(str, str, int | float)] = []
