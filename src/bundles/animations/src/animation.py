@@ -110,19 +110,25 @@ class Animation(StateManager):
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
         self.session.logger.info(f"Previewing animation at time {self._format_time(time)}")
 
-    def play(self, reverse=False):
+    def play(self, start_time=0, reverse=False):
+        if start_time < 0 or start_time > self.length:
+            self.session.logger.warning(f"Start time must be between 0 and {self.length}")
+            return
+
         self._try_frame_refresh()
 
         self.session.logger.status(f"Playing animation...")
+
+        start_frame = round(self.fps * start_time)
 
         # callback function for each frame
         def frame_cb(session, f):
             self._is_playing = True
             if reverse:
-                frame_num = len(self._lerp_steps) - f - 1
+                frame_num = start_frame - f
                 last_frame = 0
             else:
-                frame_num = f
+                frame_num = start_frame + f
                 last_frame = len(self._lerp_steps) - 1
             # get the lerp step for this frame
             lerp_step = self._lerp_steps[frame_num]
@@ -133,8 +139,13 @@ class Animation(StateManager):
                 self.session.logger.status(f"Finished playing animation.")
                 self._try_end_recording()
 
-        # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
-        CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
+        # Calculate how many frames need to be played between start_frame and the end of the animation. Take reverse
+        # into account
+        if reverse:
+            num_frames_to_play = start_frame + 1  # from start_frame to 0 (inclusive)
+        else:
+            num_frames_to_play = len(self._lerp_steps) - start_frame  # from start_frame to the end
+        CallForNFrames(frame_cb, num_frames_to_play, self.session)
 
     def record(self, record_data=None, encode_data=None, reverse=False):
         """

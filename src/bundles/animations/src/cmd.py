@@ -96,7 +96,7 @@ timeline_desc = CmdDesc(
 )
 
 
-def play(session, reverse=False):
+def play(session, start_time=0, reverse=False):
     """
     Play the animation in the StateManager.
     :param session: The current session.
@@ -106,11 +106,12 @@ def play(session, reverse=False):
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to play the animation.")
         return
-    animation_mgr.play(reverse)
+    animation_mgr.play(start_time, reverse)
 
 
 play_desc = CmdDesc(
     keyword=[
+        ("start_time", FloatArg),
         ("reverse", BoolArg)
     ],
     synopsis="Play the animation."
