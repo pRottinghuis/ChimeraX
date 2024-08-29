@@ -142,23 +142,23 @@ preview_desc = CmdDesc(
 
 
 def record(session, output=None, format=None, quality=None, qscale=None, bitrate=None,
-           framerate=25, round_trip=False, reset_mode=RESET_CLEAR, wait=False, verbose=False):
+           round_trip=False, reset_mode=RESET_CLEAR, wait=False, verbose=False):
     """
-    Record the animation using the movie bundle.
+    Record the animation using the movie bundle. The params are mirrored of what the movie command expects and are
+    directly passed to the movie command.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to record the animation.")
         return
 
+    # Framerate is omitted from the movie encoding param list because the animation manager will handle it.
     encode_params = {
-        'session': session,
         'output': output,
         'format': format,
         'quality': quality,
         'qscale': qscale,
         'bitrate': bitrate,
-        'framerate': framerate,
         'round_trip': round_trip,
         'reset_mode': reset_mode,
         'wait': wait,
@@ -176,7 +176,6 @@ record_desc = CmdDesc(
              ('quality', EnumOf(qualities)),
              ('qscale', IntArg),
              ('bitrate', FloatArg),
-             ('framerate', FloatArg),
              ('reset_mode', EnumOf(reset_modes)),
              ('round_trip', BoolArg),
              ('wait', BoolArg),

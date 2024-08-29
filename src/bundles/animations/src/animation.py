@@ -138,6 +138,9 @@ class Animation(StateManager):
         """
         self._record_data = record_data
         self._encode_data = encode_data
+        # Add framerate to the encode data. The movie command takes this as a separate argument from the encode command
+        # But we want the animation tool to track the framerate.
+        self._encode_data['framerate'] = self.fps
         # TODO find how movie checks valid file path and add it here before we start recording.
         # Make sure the animation interpolation steps are generated before we start recording
         self._try_frame_refresh()
