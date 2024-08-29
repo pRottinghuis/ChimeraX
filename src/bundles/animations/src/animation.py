@@ -13,6 +13,8 @@ class Animation(StateManager):
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
         self._is_playing = False
+        self._is_recording = False
+        self.save_location = None
         if animation_data is None:
             # dict of scene_name to float for time in seconds. All animations will start at 0.
             self.keyframes: {str, float} = {}
@@ -124,8 +126,13 @@ class Animation(StateManager):
         # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
         CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
 
-    def record(self, save_location):
-        pass
+    def record(self, save_location, reverse=False):
+        self.save_location = save_location
+        # TODO find how movie checks valid file path and add it here before we start recording.
+        from chimerax.movie.moviecmd import movie_record
+        movie_record(self.session)
+        self._is_recording = True
+        self.play(reverse)
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
@@ -185,7 +192,16 @@ class Animation(StateManager):
         return [(kf1, kf2, f) for f in fractions]
 
     def _try_end_recording(self):
-        pass
+        """
+        If the animation is currently recording, end the recording and encode the movie. It is assumed that this is
+        called after the last frame of the animation is played. It is also assumed that self.save_location is a valid
+        save file path.
+        """
+        if self._is_recording:
+            from chimerax.movie.moviecmd import movie_encode, movie_stop
+            movie_stop(self.session)
+            movie_encode(self.session, self.save_location, framerate=self.fps)
+            self._is_recording = False
 
     def _sort_keyframes(self):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
