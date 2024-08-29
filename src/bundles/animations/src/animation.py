@@ -117,11 +117,15 @@ class Animation(StateManager):
             scene1, scene2, fraction = lerp_step
             self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
             if frame_num == last_frame:
+                self._try_end_recording()
                 self._is_playing = False
                 self.session.logger.status(f"Finished playing animation.")
 
         # CallForNFrames s frame_cb for each frame in self._lerp_steps with a frame number param and the session.
         CallForNFrames(frame_cb, len(self._lerp_steps), self.session)
+
+    def record(self, save_location):
+        pass
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
@@ -179,6 +183,9 @@ class Animation(StateManager):
 
         # return an array of tuples of (kf1, kf2, fraction) for each fraction in fractions
         return [(kf1, kf2, f) for f in fractions]
+
+    def _try_end_recording(self):
+        pass
 
     def _sort_keyframes(self):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
