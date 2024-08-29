@@ -64,6 +64,13 @@ class Animation(StateManager):
         if keyframe_name not in self.keyframes:
             self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
+        # Extend the length of the animation if needed
+        if time > self.length:
+            if time > self.MAX_LENGTH:
+                self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because time {time} is over the "
+                                            f"{self.MAX_LENGTH} second limit.")
+                return
+            self.set_length(time)
         if not self.validate_time(time):
             self.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
             return
