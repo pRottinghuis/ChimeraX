@@ -4,6 +4,8 @@ from chimerax.core.commands.run import run
 
 
 class Animation(StateManager):
+
+    MAX_LENGTH = 5 * 60  # 5 minutes
     version = 0
     fps = 144
 
@@ -197,6 +199,19 @@ class Animation(StateManager):
         self._lerp_steps.extend(kf_lerp_steps)
 
         self.session.logger.info(f"Finished generating interpolation steps for animation.")
+
+    def set_length(self, length):
+        if not isinstance(length, (int, float)):
+            self.session.logger.warning(f"Length must be an integer or float")
+            return
+        if length <= 0:
+            self.session.logger.warning(f"Length must be greater than 0")
+            return
+        if length > self.MAX_LENGTH:
+            self.session.logger.warning(f"Length must be less than {self.MAX_LENGTH} seconds")
+            return
+        self.length = length
+        self.session.logger.info(f"Updated animation length to {self._format_time(self.length)}")
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
