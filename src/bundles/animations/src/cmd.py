@@ -1,4 +1,5 @@
 from chimerax.core.commands import run, CmdDesc, register, StringArg, FloatArg, BoolArg, FileNameArg
+from .animation import Animation
 
 from typing import Optional
 
@@ -34,7 +35,7 @@ def keyframe(session, action: str, keyframe_name: str, time: int | float | None 
     :param time: The time in seconds for the keyframe.
     """
 
-    animation_mgr = session.get_state_manager("animations")
+    animation_mgr: Animation = session.get_state_manager("animations")
 
     if action == "add":
         if time is not None and not isinstance(time, (int, float)):
@@ -78,7 +79,7 @@ def timeline(session):
     """
     ChimeraX command to list all keyframes in the animation StateManager in the log.
     """
-    animation_mgr = session.get_state_manager("animations")
+    animation_mgr: Animation = session.get_state_manager("animations")
     keyframes = animation_mgr.list_keyframes()
     for keyframe in keyframes:
         print(keyframe)
@@ -95,7 +96,7 @@ def play(session, reverse=False):
     :param session: The current session.
     :param reverse: Play the animation in reverse.
     """
-    animation_mgr = session.get_state_manager("animations")
+    animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to play the animation.")
         return
@@ -116,7 +117,7 @@ def preview(session, time: int | float):
     :param session: The current session.
     :param time: The time in seconds to preview the animation.
     """
-    animation_mgr = session.get_state_manager("animations")
+    animation_mgr: Animation = session.get_state_manager("animations")
     if not isinstance(time, (int, float)):
         print("Time must be an integer or float")
         return
@@ -142,7 +143,7 @@ def record(session, save_location):
     Record the animation using the movie bundle.
     :param session: The current session.
     """
-    animation_mgr = session.get_state_manager("animations")
+    animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to record the animation.")
         return
