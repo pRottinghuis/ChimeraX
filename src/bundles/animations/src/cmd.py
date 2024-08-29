@@ -2,7 +2,7 @@ from chimerax.core.commands import run, CmdDesc, register, ListOf, StringArg, Fl
     SaveFileNameArg, EnumOf
 from .animation import Animation
 from chimerax.movie.movie import RESET_CLEAR, RESET_KEEP, RESET_NONE
-from chimerax.movie.formats import formats, qualities
+from chimerax.movie.formats import formats, qualities, image_formats
 
 from typing import Optional
 
@@ -160,45 +160,66 @@ set_length_desc = CmdDesc(
 )
 
 
-def record(session, output=None, format=None, quality=None, qscale=None, bitrate=None,
-           round_trip=False, reset_mode=RESET_CLEAR, wait=False, verbose=False):
+def record(session, r_directory=None, r_pattern=None, r_format=None,
+           r_size=None, r_supersample=1, r_transparent_background=False,
+           r_limit=90000, e_output=None, e_format=None, e_quality=None, e_qscale=None, e_bitrate=None,
+           e_round_trip=False, e_reset_mode=RESET_CLEAR, e_wait=False, e_verbose=False):
     """
-    Record the animation using the movie bundle. The params are mirrored of what the movie command expects and are
-    directly passed to the movie command.
+    Record the animation using the movie bundle. The params are mirrored of what the movie record and encode command
+    expects and get directly passed to the movie command inside the Animation class.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
         print("Need at least 1 keyframes to record the animation.")
         return
 
-    # Framerate is omitted from the movie encoding param list because the animation manager will handle it.
-    encode_params = {
-        'output': output,
-        'format': format,
-        'quality': quality,
-        'qscale': qscale,
-        'bitrate': bitrate,
-        'round_trip': round_trip,
-        'reset_mode': reset_mode,
-        'wait': wait,
-        'verbose': verbose
+    record_params = {
+        'directory': r_directory,
+        'pattern': r_pattern,
+        'format': r_format,
+        'size': r_size,
+        'supersample': r_supersample,
+        'transparent_background': r_transparent_background,
+        'limit': r_limit
     }
 
-    animation_mgr.record(encode_data=encode_params)
+    # Framerate is omitted from the movie encoding param list because the animation manager will handle it.
+    encode_params = {
+        'output': e_output,
+        'format': e_format,
+        'quality': e_quality,
+        'qscale': e_qscale,
+        'bitrate': e_bitrate,
+        'round_trip': e_round_trip,
+        'reset_mode': e_reset_mode,
+        'wait': e_wait,
+        'verbose': e_verbose
+    }
+
+    animation_mgr.record(record_data=record_params, encode_data=encode_params)
 
 
+ifmts = image_formats
 fmts = tuple(formats.keys())
 reset_modes = (RESET_CLEAR, RESET_KEEP, RESET_NONE)
 record_desc = CmdDesc(
-    optional=[('output', ListOf(SaveFileNameArg))],
-    keyword=[('format', EnumOf(fmts)),
-             ('quality', EnumOf(qualities)),
-             ('qscale', IntArg),
-             ('bitrate', FloatArg),
-             ('reset_mode', EnumOf(reset_modes)),
-             ('round_trip', BoolArg),
-             ('wait', BoolArg),
-             ('verbose', BoolArg),
+    optional=[('e_output', ListOf(SaveFileNameArg))],
+    keyword=[('r_directory', SaveFileNameArg),
+             ('r_pattern', StringArg),
+             ('r_format', EnumOf(fmts)),
+             ('r_size', ListOf(IntArg)),
+             ('r_supersample', IntArg),
+             ('r_transparent_background', BoolArg),
+             ('r_limit', IntArg),
+             ('e_output', ListOf),
+             ('e_format', EnumOf(fmts)),
+             ('e_quality', EnumOf(qualities)),
+             ('e_qscale', IntArg),
+             ('e_bitrate', FloatArg),
+             ('e_reset_mode', EnumOf(reset_modes)),
+             ('e_round_trip', BoolArg),
+             ('e_wait', BoolArg),
+             ('e_verbose', BoolArg),
              ],
     synopsis="Record the animation."
 )
