@@ -17,7 +17,6 @@ class Animation(StateManager):
         self._need_frames_update = True
         self._is_playing = False
         self._is_recording = False
-        self.save_location = None
         self._record_data = None
         self._encode_data = None
         if animation_data is None:
@@ -226,8 +225,7 @@ class Animation(StateManager):
     def _try_end_recording(self):
         """
         If the animation is currently recording, end the recording and encode the movie. It is assumed that this is
-        called after the last frame of the animation is played. It is also assumed that self.save_location is a valid
-        save file path.
+        called after the last frame of the animation is played.
         """
         if self._is_recording:
             run(self.session, "movie stop", log=False)
