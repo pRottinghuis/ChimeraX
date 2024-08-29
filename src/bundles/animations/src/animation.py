@@ -10,6 +10,7 @@ class Animation(StateManager):
     fps = 144
 
     def __init__(self, session, *, animation_data=None):
+        # TODO store thumbnails for each keyframe
         self.session = session
         # list of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
