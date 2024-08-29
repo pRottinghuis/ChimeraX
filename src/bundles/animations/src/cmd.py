@@ -148,10 +148,7 @@ def record(session, save_location):
         print("Need at least 1 keyframes to record the animation.")
         return
 
-    run(session, "movie record")
-    play(session)
-    run(session, "movie stop")
-    run(session, f"movie encode {save_location} framerate {animation_mgr.get_frame_rate()}")
+    animation_mgr.record(save_location)
 
 
 record_desc = CmdDesc(
