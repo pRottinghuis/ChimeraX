@@ -12,6 +12,7 @@ class Animation(StateManager):
     def __init__(self, session, *, animation_data=None):
         # TODO store thumbnails for each keyframe
         self.session = session
+        self.logger = session.logger
         # list of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
         self._lerp_steps: [(str, str, int | float)] = []
@@ -46,28 +47,28 @@ class Animation(StateManager):
             kf_time = time
 
         if self.keyframe_exists(keyframe_name):
-            self.session.logger.warning(f"Can't create keyframe {keyframe_name} because it already exists.")
+            self.logger.warning(f"Can't create keyframe {keyframe_name} because it already exists.")
             return
         scenes = self.session.scenes.get_scene(keyframe_name)
         if scenes is None:
-            self.session.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
+            self.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
             return
         if not self.validate_time(kf_time):
-            self.session.logger.warning(f"Can't create keyframe {keyframe_name} because time {kf_time} is invalid.")
+            self.logger.warning(f"Can't create keyframe {keyframe_name} because time {kf_time} is invalid.")
             return
         self.keyframes[keyframe_name] = kf_time
         self._sort_keyframes()
         self._need_frames_update = True
-        self.session.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(kf_time)}")
+        self.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(kf_time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
         if keyframe_name not in self.keyframes:
-            self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
+            self.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
         # Extend the length of the animation if needed
         if time > self.length:
             if time > self.MAX_LENGTH:
-                self.session.logger.warning(f"Can't edit keyframe {keyframe_name} because time {time} is over the "
+                self.logger.warning(f"Can't edit keyframe {keyframe_name} because time {time} is over the "
                                             f"{self.MAX_LENGTH} second limit.")
                 return
             self.set_length(time)
@@ -77,15 +78,15 @@ class Animation(StateManager):
         self.keyframes[keyframe_name] = time
         self._sort_keyframes()
         self._need_frames_update = True
-        self.session.logger.info(f"Edited keyframe {keyframe_name} to time: {self._format_time(time)}")
+        self.logger.info(f"Edited keyframe {keyframe_name} to time: {self._format_time(time)}")
 
     def delete_keyframe(self, keyframe_name):
         if keyframe_name not in self.keyframes:
-            self.session.logger.warning(f"Can't delete keyframe {keyframe_name} because it doesn't exist.")
+            self.logger.warning(f"Can't delete keyframe {keyframe_name} because it doesn't exist.")
             return
         del self.keyframes[keyframe_name]
         self._need_frames_update = True
-        self.session.logger.info(f"Deleted keyframe {keyframe_name}")
+        self.logger.info(f"Deleted keyframe {keyframe_name}")
 
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
@@ -98,10 +99,10 @@ class Animation(StateManager):
 
     def preview(self, time):
         if not isinstance(time, (int, float)):
-            self.session.logger.warning(f"Time must be an integer or float")
+            self.logger.warning(f"Time must be an integer or float")
             return
         if time < 0 or time > self.length:
-            self.session.logger.warning(f"Time must be between 0 and {self.length}")
+            self.logger.warning(f"Time must be between 0 and {self.length}")
             return
 
         # make sure the interpolation steps are up to date
@@ -109,21 +110,21 @@ class Animation(StateManager):
 
         step = round(self.fps * time)
         if step >= len(self._lerp_steps):
-            self.session.logger.warning(f"Can't preview animation at time {self._format_time(time)} because trying to "
+            self.logger.warning(f"Can't preview animation at time {self._format_time(time)} because trying to "
                                         f"access frame: {step} out of range: {len(self._lerp_steps)}.")
             return
         scene1, scene2, fraction = self._lerp_steps[step]
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
-        self.session.logger.info(f"Previewing animation at time {self._format_time(time)}")
+        self.logger.info(f"Previewing animation at time {self._format_time(time)}")
 
     def play(self, start_time=0, reverse=False):
         if start_time < 0 or start_time > self.length:
-            self.session.logger.warning(f"Start time must be between 0 and {self.length}")
+            self.logger.warning(f"Start time must be between 0 and {self.length}")
             return
 
         self._try_frame_refresh()
 
-        self.session.logger.status(f"Playing animation...")
+        self.logger.status(f"Playing animation...")
 
         start_frame = round(self.fps * start_time)
 
@@ -142,7 +143,7 @@ class Animation(StateManager):
             self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
             if frame_num == last_frame:
                 self._is_playing = False
-                self.session.logger.status(f"Finished playing animation.")
+                self.logger.status(f"Finished playing animation.")
                 self._try_end_recording()
 
         # Calculate how many frames need to be played between start_frame and the end of the animation. Take reverse
@@ -176,13 +177,13 @@ class Animation(StateManager):
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
-            self.session.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
+            self.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
 
         # reset lerp steps
         self._lerp_steps = []
 
-        self.session.logger.info(f"Generating interpolation steps for animation...")
+        self.logger.info(f"Generating interpolation steps for animation...")
 
         # tuple val to store previously iterated keyframe (keyframe name, time).
         prev_kf_name = None
@@ -222,24 +223,24 @@ class Animation(StateManager):
         # append the lerp steps connecting the last keyframe to the end of the animation to the main lerp steps list
         self._lerp_steps.extend(kf_lerp_steps)
 
-        self.session.logger.info(f"Finished generating interpolation steps for animation.")
+        self.logger.info(f"Finished generating interpolation steps for animation.")
 
     def set_length(self, length):
         if not isinstance(length, (int, float)):
-            self.session.logger.warning(f"Length must be an integer or float")
+            self.logger.warning(f"Length must be an integer or float")
             return
         if length < self._last_kf_time():
             run(self.session, "animations timeline", log=False)
-            self.session.logger.warning(f"Length must be greater than {self._last_kf_time()}")
+            self.logger.warning(f"Length must be greater than {self._last_kf_time()}")
             return
         if length > self.MAX_LENGTH:
-            self.session.logger.warning(f"Length must be less than {self.MAX_LENGTH} seconds")
+            self.logger.warning(f"Length must be less than {self.MAX_LENGTH} seconds")
             return
 
         self.length = length
         # make sure to update the interpolation steps after time is adjusted
         self._need_frames_update = True
-        self.session.logger.info(f"Updated animation length to {self._format_time(self.length)}")
+        self.logger.info(f"Updated animation length to {self._format_time(self.length)}")
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
@@ -286,13 +287,13 @@ class Animation(StateManager):
         taken
         """
         if not isinstance(time, (int, float)):
-            self.session.logger.warning(f"Time must be an integer or float")
+            self.logger.warning(f"Time must be an integer or float")
             return False
         if not self.time_in_range(time):
-            self.session.logger.warning(f"Time must be between 0 and {self.length}")
+            self.logger.warning(f"Time must be between 0 and {self.length}")
             return False
         if time in self.keyframes.values():
-            self.session.logger.warning(f"Time {time} is already taken by a different keyframe.")
+            self.logger.warning(f"Time {time} is already taken by a different keyframe.")
             return False
         return True
 
