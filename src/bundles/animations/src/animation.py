@@ -41,8 +41,7 @@ class Animation(StateManager):
         if time is None:
             kf_time = self._last_kf_time() + 1
             if kf_time > self.length:
-                self.length = kf_time
-                self.session.logger.info(f"Updated animation length to {self._format_time(self.length)}")
+                self.set_length(kf_time)
         else:
             kf_time = time
 
