@@ -20,6 +20,9 @@ def register_command(command_name, logger):
     elif command_name == "animations preview":
         func = preview
         desc = preview_desc
+    elif command_name == "animations setLength":
+        func = set_length
+        desc = set_length_desc
     elif command_name == "animations record":
         func = record
         desc = record_desc
@@ -138,6 +141,22 @@ preview_desc = CmdDesc(
         ("time", FloatArg)
     ],
     synopsis="Preview the animation at a specific time."
+)
+
+
+def set_length(session, length: int | float):
+    """
+    Set the length of the animation.
+    """
+    animation_mgr: Animation = session.get_state_manager("animations")
+    animation_mgr.set_length(length)
+
+
+set_length_desc = CmdDesc(
+    required=[
+        ("length", FloatArg)
+    ],
+    synopsis="Set the length of the animation."
 )
 
 
