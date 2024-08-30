@@ -3,7 +3,7 @@ from .tool import AnimationsTool
 
 
 class _MyAPI(BundleAPI):
-    api_version = 0
+    api_version = 1
 
     # Override method
     @staticmethod
