@@ -93,6 +93,33 @@ class Animation(StateManager):
         self._need_frames_update = True
         self.logger.info(f"Deleted all keyframes")
 
+    def insert_time(self, target_time, amount_for_insertion):
+        """
+        Insert time into the animation. All keyframes after the target time will be moved by the amount for insertion.
+        """
+        if not self.validate_time(target_time):
+            self.logger.warning(f"Can't insert time at {target_time} because it is invalid.")
+            return
+        if not isinstance(amount_for_insertion, (int, float)):
+            self.logger.warning(f"Amount for insertion must be an integer or float.")
+            return
+        if amount_for_insertion < 0:
+            self.logger.warning(f"Can't insert negative time.")
+            return
+        if self.length + amount_for_insertion > self.MAX_LENGTH:
+            self.logger.warning(f"Can't insert time because it would exceed the {self.MAX_LENGTH} second limit.")
+            return
+        self.set_length(self.length + amount_for_insertion)
+
+        # This keyframe adjusting loop has to run in reverse so to avoid a case when editing earliest to latest
+        # keyframes, 2 keyframes are spaced equal to the insertion amount, which would results in them trying to hold
+        # the same time value.
+        for keyframe_name, time in reversed(list(self.keyframes.items())):
+            if time > target_time:
+                self.edit_keyframe_time(keyframe_name, time + amount_for_insertion)
+
+        self.logger.info(f"Inserted {amount_for_insertion} seconds at time {target_time}")
+
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
