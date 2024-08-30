@@ -26,6 +26,9 @@ def register_command(command_name, logger):
     elif command_name == "animations record":
         func = record
         desc = record_desc
+    elif command_name == "animations insertTime":
+        func = insert_time
+        desc = insert_time_desc
     elif command_name == "animations clear":
         func = clear
         desc = clear_desc
@@ -226,6 +229,23 @@ record_desc = CmdDesc(
              ('e_verbose', BoolArg),
              ],
     synopsis="Record the animation."
+)
+
+
+def insert_time(session, target_time: int | float, time: int | float):
+    """
+    Insert a segment of time at a target point on the timeline. Shift keyframes accordingly.
+    """
+    animation_mgr: Animation = session.get_state_manager("animations")
+    animation_mgr.insert_time(target_time, time)
+
+
+insert_time_desc = CmdDesc(
+    required=[
+        ("target_time", FloatArg),
+        ("time", FloatArg)
+    ],
+    synopsis="Insert a segment of time at a target point on the timeline. Shift keyframes accordingly."
 )
 
 
