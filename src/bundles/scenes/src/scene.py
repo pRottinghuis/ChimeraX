@@ -33,6 +33,7 @@ import copy
 class Scene(State):
 
     version = 0
+    thumbnail_size = (200, 200)
 
     def __init__(self, session, *, scene_data=None):
         """
@@ -46,6 +47,7 @@ class Scene(State):
             self.main_view_data = self.create_main_view_data()
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
+            self.take_thumbnail()
         else:
             # load a scene
             self.main_view_data = scene_data['main_view_data']
@@ -108,6 +110,13 @@ class Scene(State):
         self.session.restore_options['restore camera'] = True
         ViewState.restore_snapshot(self.session, restore_data)
         del self.session.restore_options['restore camera']
+
+    def take_thumbnail(self):
+        # Take a thumbnail of the scene
+        pil_image = self.session.view.image(*self.thumbnail_size)
+        # convert pil into bytes.
+        # add save to snapshot
+        # add restore from snapshot
 
     @staticmethod
     def restore_snapshot(session, data):
