@@ -117,3 +117,6 @@ class SceneManager(StateManager):
 
     def get_scene(self, scene_name):
         return self.scenes.get(scene_name)
+
+    def get_scenes(self) -> {str, Scene}:
+        return self.scenes
