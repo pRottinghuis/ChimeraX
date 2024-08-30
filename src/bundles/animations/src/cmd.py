@@ -26,6 +26,9 @@ def register_command(command_name, logger):
     elif command_name == "animations record":
         func = record
         desc = record_desc
+    elif command_name == "animations clear":
+        func = clear
+        desc = clear_desc
     else:
         raise ValueError("trying to register unknown command: %s" % command_name)
     register(command_name, desc, func)
@@ -223,4 +226,17 @@ record_desc = CmdDesc(
              ('e_verbose', BoolArg),
              ],
     synopsis="Record the animation."
+)
+
+
+def clear(session):
+    """
+    Remove all keyframes from the animations StateManager.
+    """
+    animation_mgr: Animation = session.get_state_manager("animations")
+    animation_mgr.delete_all_keyframes()
+
+
+clear_desc = CmdDesc(
+    synopsis="Remove all keyframes from the animations StateManager."
 )

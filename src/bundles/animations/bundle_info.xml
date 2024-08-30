@@ -59,6 +59,8 @@ will be displayed without the ChimeraX- prefix.
       Record the animation to a desired file. </ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: animations setLength :: General ::
       Set the length of the animation. </ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: animations clear :: General ::
+      Remove all keyframes from the animation manager. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>

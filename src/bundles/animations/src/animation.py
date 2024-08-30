@@ -88,6 +88,11 @@ class Animation(StateManager):
         self._need_frames_update = True
         self.logger.info(f"Deleted keyframe {keyframe_name}")
 
+    def delete_all_keyframes(self):
+        self.keyframes = {}
+        self._need_frames_update = True
+        self.logger.info(f"Deleted all keyframes")
+
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
