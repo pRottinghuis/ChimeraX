@@ -121,7 +121,7 @@ class Scene(State):
         pil_image.save(byte_stream, format='JPEG')
         self._thumbnail_data = byte_stream.getvalue()
 
-    def get_thumbnail(self):
+    def get_thumbnail(self) -> bytes:
         return self._thumbnail_data
 
     @staticmethod
