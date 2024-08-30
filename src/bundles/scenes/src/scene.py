@@ -1,4 +1,5 @@
 # vim: set expandtab shiftwidth=4 softtabstop=4:
+import io
 
 # === UCSF ChimeraX Copyright ===
 # Copyright 2022 Regents of the University of California. All rights reserved.
@@ -42,6 +43,7 @@ class Scene(State):
         position, camera orientation, clipping planes and model positions.
         """
         self.session = session
+        self._thumbnail_data = None
         if scene_data is None:
             # Want a new scene
             self.main_view_data = self.create_main_view_data()
@@ -52,6 +54,7 @@ class Scene(State):
             # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
+            self._thumbnail_data = scene_data['thumbnail_data']
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
@@ -114,9 +117,12 @@ class Scene(State):
     def take_thumbnail(self):
         # Take a thumbnail of the scene
         pil_image = self.session.view.image(*self.thumbnail_size)
-        # convert pil into bytes.
-        # add save to snapshot
-        # add restore from snapshot
+        byte_stream = io.BytesIO()
+        pil_image.save(byte_stream, format='JPEG')
+        self._thumbnail_data = byte_stream.getvalue()
+
+    def get_thumbnail(self):
+        return self._thumbnail_data
 
     @staticmethod
     def restore_snapshot(session, data):
@@ -126,5 +132,6 @@ class Scene(State):
         return {
             'version': self.version,
             'main_view_data': self.main_view_data,
-            'named_view': self.named_view.take_snapshot(session, flags)
+            'named_view': self.named_view.take_snapshot(session, flags),
+            'thumbnail_data': self._thumbnail_data
         }
