@@ -44,8 +44,8 @@ will be displayed without the ChimeraX- prefix.
     <PythonClassifier>License :: Freeware</PythonClassifier>
     <!-- ChimeraX classifiers describe supplied functionality -->
     <!-- Register a graphical interface tool -->
-    <ChimeraXClassifier>ChimeraX :: Tool :: Tutorial (Qt) ::
-      General :: Graphical interface example</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Tool :: Animations ::
+      General :: Keyframe animating tool.</ChimeraXClassifier>
 
     <ChimeraXClassifier>ChimeraX :: Command :: animations keyframe :: General ::
       Save a scene to the sessions scene manager. </ChimeraXClassifier>
