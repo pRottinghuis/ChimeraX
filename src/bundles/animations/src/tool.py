@@ -1,8 +1,8 @@
 from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
-    QVBoxLayout, QWidget
-from Qt.QtCore import QByteArray, Qt, QPointF
-from Qt.QtGui import QPixmap
+    QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem
+from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
+from Qt.QtGui import QPixmap, QPen
 
 
 class AnimationsTool(ToolInstance):
@@ -29,7 +29,7 @@ class AnimationsTool(ToolInstance):
 
     def build_ui(self):
         vbox = QVBoxLayout()
-        vbox.addWidget(TimelineWidget())
+        vbox.addWidget(KeyframeEditorWidget())
         self.tool_window.ui_area.setLayout(vbox)
 
     def take_snapshot(self, session, flags):
@@ -64,9 +64,21 @@ class KeyframeItem(QGraphicsPixmapItem):
         return super().itemChange(change, value)
 
 
-class TimelineWidget(QWidget):
+class TickMarkItem(QGraphicsLineItem):
+    def __init__(self, position, length):
+        super().__init__(QLineF(position, QPointF(position.x(), position.y() + length)))
+        self.setPen(QPen(Qt.gray, 1))
+
+
+class TickIntervalLabel(QGraphicsTextItem):
+    def __init__(self, text):
+        super().__init__(text)
+
+
+class KeyframeEditorWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.length = 600
         self.init_ui()
 
     def init_ui(self):
@@ -83,4 +95,31 @@ class TimelineWidget(QWidget):
             keyframe = KeyframeItem(pixmap, QPointF(i * 60, 0))
             self.timeline_scene.addItem(keyframe)
 
+        self.add_tick_marks()
+
         self.setLayout(self.layout)
+
+    def add_tick_marks(self):
+        y_position = 60  # Top positions of the tick marks and labels on the y-axis
+        interval = 10  # Interval between tick marks in pixels
+        major_interval = 100  # Interval between major tick marks in pixels
+        tick_length = 10  # Length of minor tick marks
+        major_tick_length = 20  # Length of major tick marks
+
+        # Clear existing tick marks and labels
+        for item in self.timeline_scene.items():
+            if isinstance(item, (TickMarkItem, TickIntervalLabel)):
+                self.timeline_scene.removeItem(item)
+
+        for i in range(0, self.length, interval):
+            position = QPointF(i, y_position)
+            if i % major_interval == 0:
+                tick_mark = TickMarkItem(position, major_tick_length)
+                time_label = TickIntervalLabel(f"{i // major_interval}")
+                # Use the boundingRect dimensions to center the text under a major tick mark
+                text_rect = time_label.boundingRect()
+                time_label.setPos(position.x() - text_rect.width() / 2, y_position + major_tick_length)
+                self.timeline_scene.addItem(time_label)
+            else:
+                tick_mark = TickMarkItem(position, tick_length)
+            self.timeline_scene.addItem(tick_mark)
