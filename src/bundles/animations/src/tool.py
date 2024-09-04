@@ -55,8 +55,12 @@ class KeyframeItem(QGraphicsPixmapItem):
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
+            # Called before the position has changed.
             # set y to keep the keyframe on the timeline
             return QPointF(value.x(), 0)
+        elif change == QGraphicsItem.ItemPositionHasChanged:
+            pass
+            # Called after the position has changed.
         return super().itemChange(change, value)
 
 
