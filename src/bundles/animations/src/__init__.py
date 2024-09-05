@@ -30,9 +30,9 @@ class _MyAPI(BundleAPI):
         return
 
     @staticmethod
-    def register_command(command_name, logger):
+    def register_command(bi, ci, logger):
         from . import cmd
-        cmd.register_command(command_name, logger)
+        cmd.register_command(ci.name, logger)
 
 
 # Create the ``bundle_api`` object that ChimeraX expects.
