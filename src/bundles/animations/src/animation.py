@@ -390,7 +390,7 @@ class Keyframe(State):
         """
 
         self.session = session
-        # Store a referecne to the scene manager for easy access
+        # Store a reference to the scene manager for easy access
         self.scene_mgr = session.scenes
 
         # only create the scene if it doesn't exist already. This will prevent scenes from being created extra times
