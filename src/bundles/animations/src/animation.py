@@ -12,7 +12,6 @@ class Animation(StateManager):
     fps = 144
 
     def __init__(self, session, *, animation_data=None):
-        # TODO store thumbnails for each keyframe
         self.session = session
         self.logger = session.logger
         # list of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
@@ -26,12 +25,16 @@ class Animation(StateManager):
         self._record_data = None
         self._encode_data = None
 
+        self.kf_objs: [Keyframe] = []
+
         if animation_data is None:
-            # dict of scene_name to float for time in seconds. All animations will start at 0.
-            self.keyframes: {str, float} = {}
             self.length = 5  # in seconds
         else:
-            self.keyframes = animation_data['keyframes']
+            for kf_data in animation_data['keyframes']:
+                kf = Keyframe.restore_snapshot(session, kf_data)
+                if kf is not None:
+                    # None means the keyframe couldn't be restored because the scene doesn't exist
+                    self.kf_objs.append(kf)
             self.length = animation_data['length']
 
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
@@ -56,15 +59,16 @@ class Animation(StateManager):
             self.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
             return
         if not self.validate_time(kf_time):
+            # TODO check if this messaging is redundant because validate time gives a similair message.
             self.logger.warning(f"Can't create keyframe {keyframe_name} because time {kf_time} is invalid.")
             return
-        self.keyframes[keyframe_name] = kf_time
+        self.kf_objs.append(Keyframe(self.session, keyframe_name, kf_time))
         self._sort_keyframes()
         self._need_frames_update = True
         self.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(kf_time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
-        if keyframe_name not in self.keyframes:
+        if self.keyframe_exists(keyframe_name):
             self.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
         # Extend the length of the animation if needed
@@ -77,21 +81,24 @@ class Animation(StateManager):
         if not self.validate_time(time):
             self.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
             return
-        self.keyframes[keyframe_name] = time
+        kf: Keyframe = self.get_keyframe(keyframe_name)
+        kf.set_time(time)
         self._sort_keyframes()
         self._need_frames_update = True
         self.logger.info(f"Edited keyframe {keyframe_name} to time: {self._format_time(time)}")
 
     def delete_keyframe(self, keyframe_name):
-        if keyframe_name not in self.keyframes:
+        if self.keyframe_exists(keyframe_name):
             self.logger.warning(f"Can't delete keyframe {keyframe_name} because it doesn't exist.")
             return
-        del self.keyframes[keyframe_name]
+        kf_to_delete = self.get_keyframe(keyframe_name)
+        if kf_to_delete:
+            self.kf_objs.remove(kf_to_delete)
         self._need_frames_update = True
         self.logger.info(f"Deleted keyframe {keyframe_name}")
 
     def delete_all_keyframes(self):
-        self.keyframes = {}
+        self.kf_objs = []
         self._need_frames_update = True
         self.logger.info(f"Deleted all keyframes")
 
@@ -113,12 +120,13 @@ class Animation(StateManager):
             return
         self.set_length(self.length + amount_for_insertion)
 
+        # Move all keyframes after the target time by the amount for insertion.
         # This keyframe adjusting loop has to run in reverse so to avoid a case when editing earliest to latest
-        # keyframes, 2 keyframes are spaced equal to the insertion amount, which would results in them trying to hold
+        # keyframes, 2 keyframes are spaced equal to the insertion amount, which would result in them trying to hold
         # the same time value.
-        for keyframe_name, time in reversed(list(self.keyframes.items())):
-            if time > target_time:
-                self.edit_keyframe_time(keyframe_name, time + amount_for_insertion)
+        for kf in reversed(self.kf_objs):
+            if kf.get_time() > target_time:
+                kf.set_time(kf.get_time() + amount_for_insertion)
 
         self.logger.info(f"Inserted {amount_for_insertion} seconds at time {target_time}")
 
@@ -126,8 +134,8 @@ class Animation(StateManager):
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
         keyframe_list.append(f"Start: {self._format_time(0)}")
-        for keyframe_name, time in self.keyframes.items():
-            keyframe_list.append(f"{keyframe_name}: {self._format_time(time)}")
+        for kf in self.kf_objs:
+            keyframe_list.append(f"{kf.get_name()}: {self._format_time(kf.get_time())}")
         keyframe_list.append(f"End: {self._format_time(self.length)}")
         return keyframe_list
 
@@ -210,7 +218,7 @@ class Animation(StateManager):
         self.play(reverse)
 
     def _gen_lerp_steps(self):
-        if len(self.keyframes) < 1:
+        if len(self.kf_objs) < 1:
             self.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
 
@@ -223,28 +231,28 @@ class Animation(StateManager):
         prev_kf_name = None
         prev_kf_time = None
         # ittr all the keyframes
-        for keyframe_name, time in self.keyframes.items():
+        for kf in self.kf_objs:
             # calculate delta time between keyframes. If prev_kf is None, then delta t is keyframe time minus start of
             # animation time
             if prev_kf_time is None:
-                d_time = time - 0
+                d_time = kf.get_time() - 0
             else:
-                d_time = time - prev_kf_time
+                d_time = kf.get_time() - prev_kf_time
 
             if prev_kf_name is None:
                 # if prev_kf is None, then we are at the first keyframe. Assume the first keyframe is the state of
                 # the animation between 0 and the first keyframe time, so we essentially make duplicate
                 # frames from time 0 to the first keyframe
-                kf_lerp_steps = self._gen_ntime_lerp_segment(keyframe_name, keyframe_name, d_time)
+                kf_lerp_steps = self._gen_ntime_lerp_segment(kf.get_name(), kf.get_name(), d_time)
             else:
-                kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, keyframe_name, d_time)
+                kf_lerp_steps = self._gen_ntime_lerp_segment(prev_kf_name, kf.get_name(), d_time)
 
             # append the lerp steps connecting the two keyframes to the main lerp steps list
             self._lerp_steps.extend(kf_lerp_steps)
 
             # reset previous ittr keyframe vars
-            prev_kf_name = keyframe_name
-            prev_kf_time = time
+            prev_kf_name = kf.get_name()
+            prev_kf_time = kf.get_time()
 
         # Still need to add the last keyframe to the end of the animation. Same deal as the 0:00 - first keyframe with
         # assuming the last keyframe is the state of the animation between the last keyframe and the end of the
@@ -300,7 +308,7 @@ class Animation(StateManager):
 
     def _sort_keyframes(self):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
-        self.keyframes = dict(sorted(self.keyframes.items(), key=lambda item: item[1]))
+        self.kf_objs.sort(key=lambda kf: kf.get_time())
 
     def _try_frame_refresh(self):
         if self._need_frames_update:
@@ -311,9 +319,9 @@ class Animation(StateManager):
         """
         Get the time of the last keyframe. If there are no keyframes, return 0
         """
-        if len(self.keyframes) < 1:
+        if len(self.kf_objs) < 1:
             return 0
-        return list(self.keyframes.values())[-1]
+        return self.kf_objs[-1].get_time()
 
     def validate_time(self, time):
         """
@@ -326,7 +334,7 @@ class Animation(StateManager):
         if not self.time_in_range(time):
             self.logger.warning(f"Time must be between 0 and {self.length}")
             return False
-        if time in self.keyframes.values():
+        if time in [kf.get_time() for kf in self.kf_objs]:
             self.logger.warning(f"Time {time} is already taken by a different keyframe.")
             return False
         return True
@@ -345,10 +353,13 @@ class Animation(StateManager):
         return f"{minutes}:{seconds:02}.{int(fractional_seconds * 100):02}"
 
     def keyframe_exists(self, keyframe_name):
-        return keyframe_name in self.keyframes
+        return any(kf.get_name() == keyframe_name for kf in self.kf_objs)
+
+    def get_keyframe(self, keyframe_name):
+        return next((kf for kf in self.kf_objs if kf.get_name() == keyframe_name), None)
 
     def get_num_keyframes(self):
-        return len(self.keyframes)
+        return len(self.kf_objs)
 
     def get_frame_rate(self):
         return self.fps
@@ -356,13 +367,13 @@ class Animation(StateManager):
     def reset_state(self, session):
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
-        self.keyframes: {str, float} = {}
+        self.kf_objs = []
         self.length = 5  # in seconds
 
     def take_snapshot(self, session, flags):
         return {
             'version': self.version,
-            'keyframes': self.keyframes,
+            'keyframes': [kf.take_snapshot(session, flags) for kf in self.kf_objs],
             'length': self.length,
         }
 
@@ -370,12 +381,6 @@ class Animation(StateManager):
     def restore_snapshot(session, data):
         if Animation.version != data['version']:
             raise ValueError(f"Can't restore snapshot version {data['version']} to version {Animation.version}")
-
-        for scene_name in data['keyframes'].keys():
-            if not session.scenes.get_scene(scene_name):
-                session.logger.warning(f"Can't restore keyframe {scene_name} because the scene doesn't exist.")
-                del data['keyframes'][scene_name]
-
         return Animation(session, animation_data=data)
 
 
@@ -387,6 +392,7 @@ class Keyframe(State):
     def __init__(self, session, name, time, thumbnail=None):
         """
         Keyframes have a name that corresponds to a scene, a time in seconds, and a thumbnail bytes array.
+        Precondition: The scene with the name must exist in the scene manager.
         """
 
         self.session = session
@@ -397,7 +403,7 @@ class Keyframe(State):
         # when restoring snapshots.
         if not self.scene_mgr.get_scene(name):
             # TODO hide this log command after testing
-            run(session, f"scenes scene {name}")
+            raise ValueError(f"Can't create keyframe {name} because a matching name scene doesn't exist.")
 
         self.name = name
         self.time = time
@@ -437,4 +443,9 @@ class Keyframe(State):
     def restore_snapshot(session, data):
         if Keyframe.version != data['version']:
             raise ValueError(f"Can't restore snapshot version {data['version']} to version {Keyframe.version}")
+
+        scene_mgr = session.scenes
+        if not scene_mgr.get_scene(data['name']):
+            session.logger.error(f"Can't restore keyframe {data['name']} because the scene doesn't exist.")
+            return None
         return Keyframe(session, data['name'], data['time'], data['thumbnail'])
