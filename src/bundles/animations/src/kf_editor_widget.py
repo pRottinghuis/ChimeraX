@@ -30,11 +30,13 @@ class KeyframeEditorScene(QGraphicsScene):
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
         self.addItem(self.cursor)
+        self.keyframes = []
 
         for i in range(5):
             pixmap = QPixmap(50, 50)
             pixmap.fill(Qt.blue)
             keyframe = KeyframeItem(pixmap, QPointF(i * 60, 0), self.timeline)
+            self.keyframes.append(keyframe)
             self.addItem(keyframe)
 
     def update_scene_size(self):

@@ -1,6 +1,8 @@
-from chimerax.core.state import StateManager
+from chimerax.core.state import StateManager, State
 from chimerax.core.commands.motion import CallForNFrames
 from chimerax.core.commands.run import run
+
+import io
 
 
 class Animation(StateManager):
@@ -375,3 +377,64 @@ class Animation(StateManager):
                 del data['keyframes'][scene_name]
 
         return Animation(session, animation_data=data)
+
+
+class Keyframe(State):
+
+    version = 0
+    thumbnail_size = (200, 200)
+
+    def __init__(self, session, name, time, thumbnail=None):
+        """
+        Keyframes have a name that corresponds to a scene, a time in seconds, and a thumbnail bytes array.
+        """
+
+        self.session = session
+        # Store a referecne to the scene manager for easy access
+        self.scene_mgr = session.scenes
+
+        # only create the scene if it doesn't exist already. This will prevent scenes from being created extra times
+        # when restoring snapshots.
+        if not self.scene_mgr.get_scene(name):
+            # TODO hide this log command after testing
+            run(session, f"scenes scene {name}")
+
+        self.name = name
+        self.time = time
+        if thumbnail is None:
+            self.thumbnail = self.take_thumbnail()
+        else:
+            self.thumbnail = thumbnail
+
+    def take_thumbnail(self):
+        # Take a thumbnail and return the bytes array for a JPEG image
+        pil_image = self.session.view.image(*self.thumbnail_size)
+        byte_stream = io.BytesIO()
+        pil_image.save(byte_stream, format='JPEG')
+        return byte_stream.getvalue()
+
+    def get_time(self):
+        return self.time
+
+    def get_name(self):
+        return self.name
+
+    def get_thumbnail(self):
+        return self.thumbnail
+
+    def set_time(self, time):
+        self.time = time
+
+    def take_snapshot(self, session, flags):
+        return {
+            'name': self.name,
+            'time': self.time,
+            'thumbnail': self.thumbnail,
+            'version': self.version,
+        }
+
+    @staticmethod
+    def restore_snapshot(session, data):
+        if Keyframe.version != data['version']:
+            raise ValueError(f"Can't restore snapshot version {data['version']} to version {Keyframe.version}")
+        return Keyframe(session, data['name'], data['time'], data['thumbnail'])
