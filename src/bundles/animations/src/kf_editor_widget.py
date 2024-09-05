@@ -19,11 +19,22 @@ class KeyframeEditorScene(QGraphicsScene):
         super().__init__()
         for i in range(5):
             pixmap = QPixmap(50, 50)
-            pixmap.fill(Qt.red)
+            pixmap.fill(Qt.blue)
             keyframe = KeyframeItem(pixmap, QPointF(i * 60, 0))
             self.addItem(keyframe)
 
-        self.addItem(Timeline())
+        self.timeline = Timeline()
+        self.addItem(self.timeline)
+        self.cursor = TimelineCursor(QPointF(0, 0), 70)
+        self.addItem(self.cursor)
+
+    def update_scene_size(self):
+        scene_width = self.timeline.length + 20  # Slightly wider than the timeline
+        self.setSceneRect(0, 0, scene_width, self.height())
+
+    def set_timeline_length(self, length):
+        self.timeline.set_length(length)
+        self.update_scene_size()
 
 
 class KeyframeItem(QGraphicsPixmapItem):
@@ -31,6 +42,25 @@ class KeyframeItem(QGraphicsPixmapItem):
         super().__init__(pixmap)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
         self.setPos(position)
+        # hold onto a reference to the timeline so that update each keyframe based on the timeline.
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionChange:
+            # Called before the position has changed.
+            # set y to keep the keyframe on the timeline
+            return QPointF(value.x(), 0)
+        elif change == QGraphicsItem.ItemPositionHasChanged:
+            pass
+            # Called after the position has changed.
+        return super().itemChange(change, value)
+
+
+class TimelineCursor(QGraphicsLineItem):
+    def __init__(self, position, length):
+        super().__init__(QLineF(position, QPointF(position.x(), position.y() + length)))
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
+        self.setPen(QPen(Qt.red, 2))
+        self.setZValue(1)  # Render in front of other items
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
