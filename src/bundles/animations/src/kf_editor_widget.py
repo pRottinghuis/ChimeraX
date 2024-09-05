@@ -54,7 +54,7 @@ class KeyframeEditorScene(QGraphicsScene):
 
 
 class Timeline(QGraphicsItemGroup):
-    def __init__(self, length=600, interval=10, major_interval=100, tick_length=10, major_tick_length=20):
+    def __init__(self, length=600, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
         super().__init__()
         self.length = length
         self.interval = interval
