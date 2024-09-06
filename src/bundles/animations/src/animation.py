@@ -25,7 +25,7 @@ class Animation(StateManager):
         self._record_data = None
         self._encode_data = None
 
-        self.kf_objs: [Keyframe] = []
+        self.keyframes: [Keyframe] = []
 
         if animation_data is None:
             self.length = 5  # in seconds
@@ -34,7 +34,7 @@ class Animation(StateManager):
                 kf = Keyframe.restore_snapshot(session, kf_data)
                 if kf is not None:
                     # None means the keyframe couldn't be restored because the scene doesn't exist
-                    self.kf_objs.append(kf)
+                    self.keyframes.append(kf)
             self.length = animation_data['length']
 
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
@@ -62,7 +62,7 @@ class Animation(StateManager):
             # TODO check if this messaging is redundant because validate time gives a similair message.
             self.logger.warning(f"Can't create keyframe {keyframe_name} because time {kf_time} is invalid.")
             return
-        self.kf_objs.append(Keyframe(self.session, keyframe_name, kf_time))
+        self.keyframes.append(Keyframe(self.session, keyframe_name, kf_time))
         self._sort_keyframes()
         self._need_frames_update = True
         self.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(kf_time)}")
@@ -93,12 +93,12 @@ class Animation(StateManager):
             return
         kf_to_delete = self.get_keyframe(keyframe_name)
         if kf_to_delete:
-            self.kf_objs.remove(kf_to_delete)
+            self.keyframes.remove(kf_to_delete)
         self._need_frames_update = True
         self.logger.info(f"Deleted keyframe {keyframe_name}")
 
     def delete_all_keyframes(self):
-        self.kf_objs = []
+        self.keyframes = []
         self._need_frames_update = True
         self.logger.info(f"Deleted all keyframes")
 
@@ -124,7 +124,7 @@ class Animation(StateManager):
         # This keyframe adjusting loop has to run in reverse so to avoid a case when editing earliest to latest
         # keyframes, 2 keyframes are spaced equal to the insertion amount, which would result in them trying to hold
         # the same time value.
-        for kf in reversed(self.kf_objs):
+        for kf in reversed(self.keyframes):
             if kf.get_time() > target_time:
                 kf.set_time(kf.get_time() + amount_for_insertion)
 
@@ -134,7 +134,7 @@ class Animation(StateManager):
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
         keyframe_list.append(f"Start: {self._format_time(0)}")
-        for kf in self.kf_objs:
+        for kf in self.keyframes:
             keyframe_list.append(f"{kf.get_name()}: {self._format_time(kf.get_time())}")
         keyframe_list.append(f"End: {self._format_time(self.length)}")
         return keyframe_list
@@ -218,7 +218,7 @@ class Animation(StateManager):
         self.play(reverse)
 
     def _gen_lerp_steps(self):
-        if len(self.kf_objs) < 1:
+        if len(self.keyframes) < 1:
             self.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
 
@@ -231,7 +231,7 @@ class Animation(StateManager):
         prev_kf_name = None
         prev_kf_time = None
         # ittr all the keyframes
-        for kf in self.kf_objs:
+        for kf in self.keyframes:
             # calculate delta time between keyframes. If prev_kf is None, then delta t is keyframe time minus start of
             # animation time
             if prev_kf_time is None:
@@ -308,7 +308,7 @@ class Animation(StateManager):
 
     def _sort_keyframes(self):
         """Sort keyframes by time. Should be called after any changes to keyframes."""
-        self.kf_objs.sort(key=lambda kf: kf.get_time())
+        self.keyframes.sort(key=lambda kf: kf.get_time())
 
     def _try_frame_refresh(self):
         if self._need_frames_update:
@@ -319,9 +319,9 @@ class Animation(StateManager):
         """
         Get the time of the last keyframe. If there are no keyframes, return 0
         """
-        if len(self.kf_objs) < 1:
+        if len(self.keyframes) < 1:
             return 0
-        return self.kf_objs[-1].get_time()
+        return self.keyframes[-1].get_time()
 
     def validate_time(self, time):
         """
@@ -334,7 +334,7 @@ class Animation(StateManager):
         if not self.time_in_range(time):
             self.logger.warning(f"Time must be between 0 and {self.length}")
             return False
-        if time in [kf.get_time() for kf in self.kf_objs]:
+        if time in [kf.get_time() for kf in self.keyframes]:
             self.logger.warning(f"Time {time} is already taken by a different keyframe.")
             return False
         return True
@@ -353,13 +353,13 @@ class Animation(StateManager):
         return f"{minutes}:{seconds:02}.{int(fractional_seconds * 100):02}"
 
     def keyframe_exists(self, keyframe_name):
-        return any(kf.get_name() == keyframe_name for kf in self.kf_objs)
+        return any(kf.get_name() == keyframe_name for kf in self.keyframes)
 
     def get_keyframe(self, keyframe_name):
-        return next((kf for kf in self.kf_objs if kf.get_name() == keyframe_name), None)
+        return next((kf for kf in self.keyframes if kf.get_name() == keyframe_name), None)
 
     def get_num_keyframes(self):
-        return len(self.kf_objs)
+        return len(self.keyframes)
 
     def get_frame_rate(self):
         return self.fps
@@ -367,13 +367,13 @@ class Animation(StateManager):
     def reset_state(self, session):
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
-        self.kf_objs = []
+        self.keyframes = []
         self.length = 5  # in seconds
 
     def take_snapshot(self, session, flags):
         return {
             'version': self.version,
-            'keyframes': [kf.take_snapshot(session, flags) for kf in self.kf_objs],
+            'keyframes': [kf.take_snapshot(session, flags) for kf in self.keyframes],
             'length': self.length,
         }
 
