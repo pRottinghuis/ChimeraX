@@ -374,6 +374,9 @@ class Animation(StateManager):
     def get_keyframe(self, keyframe_name):
         return next((kf for kf in self.keyframes if kf.get_name() == keyframe_name), None)
 
+    def get_keyframes(self):
+        return self.keyframes
+
     def get_num_keyframes(self):
         return len(self.keyframes)
 

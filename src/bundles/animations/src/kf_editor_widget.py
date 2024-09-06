@@ -5,11 +5,11 @@ from Qt.QtGui import QPixmap, QPen
 
 
 class KeyframeEditorWidget(QWidget):
-    def __init__(self):
+    def __init__(self, length, keyframes):
         super().__init__()
         self.layout = QVBoxLayout(self)
         self.kfe_view = QGraphicsView(self)
-        self.kfe_scene = KeyframeEditorScene()
+        self.kfe_scene = KeyframeEditorScene(length, keyframes)
         self.kfe_view.setScene(self.kfe_scene)
 
         self.sample_button = QPushButton("Sample Button")
@@ -24,20 +24,22 @@ class KeyframeEditorWidget(QWidget):
 
 
 class KeyframeEditorScene(QGraphicsScene):
-    def __init__(self):
+    def __init__(self, length, keyframes):
         super().__init__()
-        self.timeline = Timeline()
+        self.timeline = Timeline(length=length * 60)  # TODO remove *60 temp fix by scaling in the timeline object
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
         self.addItem(self.cursor)
         self.keyframes = []
 
-        for i in range(5):
-            pixmap = QPixmap(50, 50)
-            pixmap.fill(Qt.blue)
-            keyframe = KeyframeItem(pixmap, QPointF(i * 60, 0), self.timeline)
-            self.keyframes.append(keyframe)
-            self.addItem(keyframe)
+        for kf in keyframes:
+            thumbnail_bytes = kf.get_thumbnail()
+            pixmap = QPixmap()
+            pixmap.loadFromData(thumbnail_bytes, "JPEG")
+            pixmap = pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            keyframe_item = KeyframeItem(pixmap, QPointF(kf.get_time() * 60, 0), self.timeline) # TODO remove *60 scaling once timeline is fixed
+            self.keyframes.append(keyframe_item)
+            self.addItem(keyframe_item)
 
     def update_scene_size(self):
         scene_width = self.timeline.length + 20  # Slightly wider than the timeline
@@ -57,6 +59,7 @@ class KeyframeEditorScene(QGraphicsScene):
 
 class Timeline(QGraphicsItemGroup):
     def __init__(self, length=600, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
+        # TODO convert length param into seconds and update the tick marks accordingly
         super().__init__()
         self.length = length
         self.interval = interval
