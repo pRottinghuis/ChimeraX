@@ -34,7 +34,6 @@ import copy
 class Scene(State):
 
     version = 0
-    thumbnail_size = (200, 200)
 
     def __init__(self, session, *, scene_data=None):
         """
@@ -43,18 +42,15 @@ class Scene(State):
         position, camera orientation, clipping planes and model positions.
         """
         self.session = session
-        self._thumbnail_data = None
         if scene_data is None:
             # Want a new scene
             self.main_view_data = self.create_main_view_data()
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
-            self.take_thumbnail()
         else:
             # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
-            self._thumbnail_data = scene_data['thumbnail_data']
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
@@ -114,16 +110,6 @@ class Scene(State):
         ViewState.restore_snapshot(self.session, restore_data)
         del self.session.restore_options['restore camera']
 
-    def take_thumbnail(self):
-        # Take a thumbnail of the scene
-        pil_image = self.session.view.image(*self.thumbnail_size)
-        byte_stream = io.BytesIO()
-        pil_image.save(byte_stream, format='JPEG')
-        self._thumbnail_data = byte_stream.getvalue()
-
-    def get_thumbnail(self) -> bytes:
-        return self._thumbnail_data
-
     @staticmethod
     def restore_snapshot(session, data):
         return Scene(session, scene_data=data)
@@ -133,5 +119,4 @@ class Scene(State):
             'version': self.version,
             'main_view_data': self.main_view_data,
             'named_view': self.named_view.take_snapshot(session, flags),
-            'thumbnail_data': self._thumbnail_data
         }
