@@ -37,7 +37,7 @@ class KeyframeEditorScene(QGraphicsScene):
             pixmap = QPixmap()
             pixmap.loadFromData(thumbnail_bytes, "JPEG")
             pixmap = pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            keyframe_item = KeyframeItem(pixmap, QPointF(kf.get_time() * 60, 0), self.timeline) # TODO remove *60 scaling once timeline is fixed
+            keyframe_item = KeyframeItem(pixmap, QPointF(kf.get_time() * 60, 0), self.timeline)  # TODO remove *60 scaling once timeline is fixed
             self.keyframes.append(keyframe_item)
             self.addItem(keyframe_item)
 
@@ -102,6 +102,7 @@ class KeyframeItem(QGraphicsPixmapItem):
     def __init__(self, pixmap, position, timeline: Timeline):
         super().__init__(pixmap)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
+        self.setAcceptHoverEvents(True)
         # hold onto a reference to the timeline so that update each keyframe based on the timeline.
         # Timeline must be initialized before any itemChange like position is made.
         self.timeline = timeline
@@ -110,10 +111,24 @@ class KeyframeItem(QGraphicsPixmapItem):
         half_width = self.boundingRect().width() / 2
         tick_position = QPointF(half_width, self.boundingRect().height())
         self.tick_mark = TickMarkItem(tick_position, 10)  # Length of the tick mark
-        self.tick_mark.setPen(QPen(Qt.blue, 1))
+        self.tick_mark.setPen(QPen(Qt.red, 1))
         self.tick_mark.setParentItem(self)
 
+        # Create hover info item
+        self.hover_info = QGraphicsTextItem(f"info text", self)
+        self.hover_info.setDefaultTextColor(Qt.white)
+        self.hover_info.setPos(0, -20)  # Position above the keyframe
+        self.hover_info.hide()  # Hide initially
+
         self.setPos(position)
+
+    def hoverEnterEvent(self, event):
+        self.hover_info.show()  # Show hover info
+        super().hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event):
+        self.hover_info.hide()  # Hide hover info
+        super().hoverLeaveEvent(event)
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
