@@ -59,8 +59,6 @@ class Animation(StateManager):
             self.logger.warning(f"Can't create keyframe for scene {keyframe_name} because it doesn't exist.")
             return
         if not self.validate_time(kf_time):
-            # TODO check if this messaging is redundant because validate time gives a similair message.
-            self.logger.warning(f"Can't create keyframe {keyframe_name} because time {kf_time} is invalid.")
             return
         self.keyframes.append(Keyframe(self.session, keyframe_name, kf_time))
         self._sort_keyframes()
@@ -79,7 +77,6 @@ class Animation(StateManager):
                 return
             self.set_length(time)
         if not self.validate_time(time):
-            self.logger.warning(f"Can't create keyframe {keyframe_name} because time {time} is invalid.")
             return
         kf: Keyframe = self.get_keyframe(keyframe_name)
         kf.set_time(time)
@@ -107,7 +104,6 @@ class Animation(StateManager):
         Insert time into the animation. All keyframes after the target time will be moved by the amount for insertion.
         """
         if not self.validate_time(target_time):
-            self.logger.warning(f"Can't insert time at {target_time} because it is invalid.")
             return
         if not isinstance(amount_for_insertion, (int, float)):
             self.logger.warning(f"Amount for insertion must be an integer or float.")
