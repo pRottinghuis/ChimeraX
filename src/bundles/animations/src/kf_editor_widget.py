@@ -3,6 +3,7 @@ from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
+from .animation import format_time
 
 
 class KeyframeEditorWidget(QWidget):
@@ -54,6 +55,10 @@ class KeyframeEditorScene(QGraphicsScene):
         kf_item_x = self.timeline.get_pos_for_time(kf.get_time()) - KeyframeItem.SIZE / 2
         keyframe_item = KeyframeItem(pixmap, QPointF(kf_item_x, 0),
                                      self.timeline)
+        # Need to update the info label on the keyframe graphic item. Placing on the timeline
+        # automatically does a pos to time conversion based on the timeline.
+        # However, 1 pixel change may be a 0.02 change in time.
+        keyframe_item.set_info_time(kf.get_time())
         self.keyframes.append(keyframe_item)
         self.addItem(keyframe_item)
 
@@ -192,13 +197,15 @@ class KeyframeItem(QGraphicsPixmapItem):
                 new_x = value.x()
 
             # Update the info text
-            from .animation import format_time
             time = self.timeline.get_time_for_pos(new_x + half_width)
             self.hover_info.setPlainText(format_time(time))
 
             return QPointF(new_x, 0)
 
         return super().itemChange(change, value)
+
+    def set_info_time(self, time: int | float):
+        self.hover_info.setPlainText(format_time(time))
 
 
 class TimelineCursor(QGraphicsLineItem):
