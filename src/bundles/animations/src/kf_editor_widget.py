@@ -62,9 +62,6 @@ class KeyframeEditorScene(QGraphicsScene):
         self.keyframes.append(keyframe_item)
         self.addItem(keyframe_item)
 
-    def handle_kf_added(self, trigger_name, kf):
-        self.add_kf_item(kf)
-
     def update_scene_size(self):
         scene_width = self.timeline.get_pix_length() + 20  # Slightly wider than the timeline
         self.setSceneRect(0, 0, scene_width, self.height())
