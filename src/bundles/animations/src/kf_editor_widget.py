@@ -6,6 +6,10 @@ from Qt.QtGui import QPixmap, QPen
 
 class KeyframeEditorWidget(QWidget):
     def __init__(self, length, keyframes):
+        """
+        :param length: Length of the timeline in seconds
+        :param keyframes: List of animation.Keyframe objects
+        """
         super().__init__()
         self.layout = QVBoxLayout(self)
         self.kfe_view = QGraphicsView(self)
