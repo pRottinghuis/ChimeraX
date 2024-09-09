@@ -42,6 +42,7 @@ class KeyframeEditorScene(QGraphicsScene):
             self.add_kf_item(kf)
 
         anim_triggers.add_handler(Animation.KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
+        anim_triggers.add_handler(Animation.KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data))
 
     def add_kf_item(self, kf):
         """
@@ -61,6 +62,16 @@ class KeyframeEditorScene(QGraphicsScene):
         keyframe_item.set_info_time(kf.get_time())
         self.keyframes[kf.get_name()] = keyframe_item
         self.addItem(keyframe_item)
+
+    def move_keyframe_item(self, kf):
+        """
+        Move a keyframe item to a new time.
+        :param kf: animations.Keyframe object
+        """
+        keyframe_item = self.keyframes[kf.get_name()]
+        if keyframe_item is None:
+            raise ValueError(f"Keyframe graphics item with name {kf.get_name()} not found.")
+        keyframe_item.set_position_from_time(kf.get_time())
 
     def update_scene_size(self):
         scene_width = self.timeline.get_pix_length() + 20  # Slightly wider than the timeline
@@ -200,6 +211,10 @@ class KeyframeItem(QGraphicsPixmapItem):
             return QPointF(new_x, 0)
 
         return super().itemChange(change, value)
+
+    def set_position_from_time(self, time):
+        new_x = self.timeline.get_pos_for_time(time) - self.boundingRect().width() / 2
+        self.setX(new_x)
 
     def set_info_time(self, time: int | float):
         self.hover_info.setPlainText(format_time(time))
