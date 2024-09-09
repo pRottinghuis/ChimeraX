@@ -46,8 +46,7 @@ class Animation(StateManager):
         self.keyframes: [Keyframe] = []
 
         if animation_data is None:
-            self.length = self.DEFAULT_LENGTH  # in seconds
-            self.triggers.activate_trigger(self.LENGTH_CHANGE, self.length)
+            self.set_length(self.DEFAULT_LENGTH)
         else:
             for kf_data in animation_data['keyframes']:
                 kf = Keyframe.restore_snapshot(session, kf_data)
@@ -55,8 +54,7 @@ class Animation(StateManager):
                     # None means the keyframe couldn't be restored because the scene doesn't exist
                     self.keyframes.append(kf)
                     self.triggers.activate_trigger(self.KF_ADDED, kf)
-            self.length = animation_data['length']
-            self.triggers.activate_trigger(self.LENGTH_CHANGE, self.length)
+            self.set_length(animation_data['length'])
 
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
         """

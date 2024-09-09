@@ -41,9 +41,12 @@ class KeyframeEditorScene(QGraphicsScene):
         for kf in keyframes:
             self.add_kf_item(kf)
 
+        # Connect triggers from the animation manager in the session to the keyframe editor
         anim_triggers.add_handler(Animation.KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
         anim_triggers.add_handler(Animation.KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data))
         anim_triggers.add_handler(Animation.KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
+        anim_triggers.add_handler(
+            Animation.LENGTH_CHANGE, lambda trigger_name, data: self.set_timeline_length(data))
 
     def add_kf_item(self, kf):
         """
@@ -87,7 +90,7 @@ class KeyframeEditorScene(QGraphicsScene):
         self.setSceneRect(0, 0, scene_width, self.height())
 
     def set_timeline_length(self, length):
-        self.timeline.set_length(length)
+        self.timeline.set_time_length(length)
         self.update_scene_size()
 
     def mousePressEvent(self, event):
@@ -106,7 +109,7 @@ class Timeline(QGraphicsItemGroup):
         # TODO convert length param into seconds and update the tick marks accordingly
         super().__init__()
         self.time_length = time_length  # Length of the timeline in seconds
-        # Length of the timeline in pixels. Round to make sure only whole pixels
+        # Length of the timeline in pixels. Can only be a whole number of pixels.
         self.pix_length = round(time_length * self.SCALE)
         self.interval = interval
         self.major_interval = major_interval
@@ -158,13 +161,13 @@ class Timeline(QGraphicsItemGroup):
         else:
             return calc_time
 
-    def set_length(self, length):
+    def set_time_length(self, length):
         """
         Set the length of the timeline.
         :param length: Length of the timeline in seconds
         """
         self.time_length = length
-        self.pix_length = self.time_length * self.SCALE  # Length of the timeline in pixels
+        self.pix_length = round(self.time_length * self.SCALE)
         self.update_tick_marks()
 
 
