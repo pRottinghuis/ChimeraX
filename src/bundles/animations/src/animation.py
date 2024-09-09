@@ -21,9 +21,9 @@ class Animation(StateManager):
     fps = 144
     DEFAULT_LENGTH = 5  # in seconds
 
-    KF_ADDED, KF_DELETED, KF_EDITED, LENGTH_CHANGE = trigger_names = (
+    KF_ADDED, KF_DELETED, KF_EDITED, LENGTH_CHANGE, PREVIEW = trigger_names = (
         "animations keyframe added", "animations keyframe deleted", "animations keyframe edited",
-        "animations length change")
+        "animations length change", "animations preview")
 
     def __init__(self, session, *, animation_data=None):
         self.session = session
@@ -173,11 +173,10 @@ class Animation(StateManager):
 
         step = round(self.fps * time)
         if step >= len(self._lerp_steps):
-            self.logger.warning(f"Can't preview animation at time {format_time(time)} because trying to "
-                                        f"access frame: {step} out of range: {len(self._lerp_steps)}.")
-            return
+            step = len(self._lerp_steps) - 1
         scene1, scene2, fraction = self._lerp_steps[step]
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
+        self.triggers.activate_trigger(self.PREVIEW, time)
         self.logger.info(f"Previewing animation at time {format_time(time)}")
 
     def play(self, start_time=0, reverse=False):
