@@ -47,6 +47,7 @@ class KeyframeEditorScene(QGraphicsScene):
         anim_triggers.add_handler(Animation.KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
         anim_triggers.add_handler(
             Animation.LENGTH_CHANGE, lambda trigger_name, data: self.set_timeline_length(data))
+        anim_triggers.add_handler(Animation.PREVIEW, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
 
     def add_kf_item(self, kf):
         """
@@ -251,6 +252,10 @@ class TimelineCursor(QGraphicsLineItem):
                 return QPointF(self.timeline.x() + self.timeline.get_pix_length(), self.y())
             return QPointF(value.x(), self.y())
         return super().itemChange(change, value)
+
+    def set_pos_from_time(self, time):
+        new_x = self.timeline.get_pos_for_time(time)
+        self.setX(new_x)
 
 
 class TickMarkItem(QGraphicsLineItem):
