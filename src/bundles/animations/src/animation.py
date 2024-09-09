@@ -6,6 +6,14 @@ from chimerax.core.triggerset import TriggerSet
 import io
 
 
+def format_time(time):
+    """Convert time in seconds to min:sec.__ format."""
+    minutes = int(time // 60)
+    seconds = int(time % 60)
+    fractional_seconds = round(time % 1, 2)
+    return f"{minutes}:{seconds:02}.{int(fractional_seconds * 100):02}"
+
+
 class Animation(StateManager):
 
     MAX_LENGTH = 5 * 60  # 5 minutes
@@ -78,7 +86,7 @@ class Animation(StateManager):
         self._sort_keyframes()
         self._need_frames_update = True
         self.triggers.activate_trigger(self.KF_ADDED, new_kf)
-        self.logger.info(f"Created keyframe: {keyframe_name} at time: {self._format_time(kf_time)}")
+        self.logger.info(f"Created keyframe: {keyframe_name} at time: {format_time(kf_time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
         if self.keyframe_exists(keyframe_name):
@@ -98,7 +106,7 @@ class Animation(StateManager):
         self._sort_keyframes()
         self._need_frames_update = True
         self.triggers.activate_trigger(self.KF_EDITED, kf)
-        self.logger.info(f"Edited keyframe {keyframe_name} to time: {self._format_time(time)}")
+        self.logger.info(f"Edited keyframe {keyframe_name} to time: {format_time(time)}")
 
     def delete_keyframe(self, keyframe_name):
         if not self.keyframe_exists(keyframe_name):
@@ -148,10 +156,10 @@ class Animation(StateManager):
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
-        keyframe_list.append(f"Start: {self._format_time(0)}")
+        keyframe_list.append(f"Start: {format_time(0)}")
         for kf in self.keyframes:
-            keyframe_list.append(f"{kf.get_name()}: {self._format_time(kf.get_time())}")
-        keyframe_list.append(f"End: {self._format_time(self.length)}")
+            keyframe_list.append(f"{kf.get_name()}: {format_time(kf.get_time())}")
+        keyframe_list.append(f"End: {format_time(self.length)}")
         return keyframe_list
 
     def preview(self, time):
@@ -167,12 +175,12 @@ class Animation(StateManager):
 
         step = round(self.fps * time)
         if step >= len(self._lerp_steps):
-            self.logger.warning(f"Can't preview animation at time {self._format_time(time)} because trying to "
+            self.logger.warning(f"Can't preview animation at time {format_time(time)} because trying to "
                                         f"access frame: {step} out of range: {len(self._lerp_steps)}.")
             return
         scene1, scene2, fraction = self._lerp_steps[step]
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
-        self.logger.info(f"Previewing animation at time {self._format_time(time)}")
+        self.logger.info(f"Previewing animation at time {format_time(time)}")
 
     def play(self, start_time=0, reverse=False):
         if start_time < 0 or start_time > self.length:
@@ -298,7 +306,7 @@ class Animation(StateManager):
         self.triggers.activate_trigger(self.LENGTH_CHANGE, self.length)
         # make sure to update the interpolation steps after time is adjusted
         self._need_frames_update = True
-        self.logger.info(f"Updated animation length to {self._format_time(self.length)}")
+        self.logger.info(f"Updated animation length to {format_time(self.length)}")
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number

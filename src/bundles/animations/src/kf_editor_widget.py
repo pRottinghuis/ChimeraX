@@ -23,14 +23,14 @@ class KeyframeEditorWidget(QWidget):
         self.layout.addWidget(self.kfe_view)
 
     def sample_button_clicked(self):
-        len_update = self.kfe_scene.timeline.length + 100
+        len_update = self.kfe_scene.timeline.time_length + 1
         self.kfe_scene.set_timeline_length(len_update)
 
 
 class KeyframeEditorScene(QGraphicsScene):
     def __init__(self, length, keyframes):
         super().__init__()
-        self.timeline = Timeline(length=length * 60)  # TODO remove *60 temp fix by scaling in the timeline object
+        self.timeline = Timeline(time_length=length)  # TODO remove *60 temp fix by scaling in the timeline object
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
         self.addItem(self.cursor)
@@ -41,12 +41,12 @@ class KeyframeEditorScene(QGraphicsScene):
             pixmap = QPixmap()
             pixmap.loadFromData(thumbnail_bytes, "JPEG")
             pixmap = pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            keyframe_item = KeyframeItem(pixmap, QPointF(kf.get_time() * 60, 0), self.timeline)  # TODO remove *60 scaling once timeline is fixed
+            keyframe_item = KeyframeItem(pixmap, QPointF(self.timeline.get_pos_for_time(kf.get_time()), 0), self.timeline)  # TODO remove *60 scaling once timeline is fixed
             self.keyframes.append(keyframe_item)
             self.addItem(keyframe_item)
 
     def update_scene_size(self):
-        scene_width = self.timeline.length + 20  # Slightly wider than the timeline
+        scene_width = self.timeline.get_pix_length() + 20  # Slightly wider than the timeline
         self.setSceneRect(0, 0, scene_width, self.height())
 
     def set_timeline_length(self, length):
@@ -62,10 +62,15 @@ class KeyframeEditorScene(QGraphicsScene):
 
 
 class Timeline(QGraphicsItemGroup):
-    def __init__(self, length=600, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
+
+    SCALE = 60  # Scale factor. Pixels per second.
+
+    def __init__(self, time_length=5, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
         # TODO convert length param into seconds and update the tick marks accordingly
         super().__init__()
-        self.length = length
+        self.time_length = time_length  # Length of the timeline in seconds
+        # Length of the timeline in pixels. Round to make sure only whole pixels
+        self.pix_length = round(time_length * self.SCALE)
         self.interval = interval
         self.major_interval = major_interval
         self.tick_length = tick_length
@@ -80,7 +85,7 @@ class Timeline(QGraphicsItemGroup):
             self.removeFromGroup(item)
             self.scene().removeItem(item)
 
-        for i in range(0, self.length + 1, self.interval):
+        for i in range(0, self.pix_length + 1, self.interval):
             position = QPointF(i, y_position)
             if i % self.major_interval == 0:
                 tick_mark = QGraphicsLineItem(
@@ -97,8 +102,32 @@ class Timeline(QGraphicsItemGroup):
                 tick_mark.setPen(QPen(Qt.gray, 1))
                 self.addToGroup(tick_mark)
 
+    def get_pix_length(self):
+        return self.pix_length
+
+    def get_pos_for_time(self, time):
+        return round(time * self.SCALE)
+
+    def get_time_for_pos(self, position):
+        """
+        Convert a position on the timeline to a time in seconds.
+        :param position: QPointF position on the timeline
+        """
+        calc_time = position.x() / self.SCALE
+        if calc_time < 0:
+            return 0
+        elif calc_time > self.time_length:
+            return self.time_length
+        else:
+            return calc_time
+
     def set_length(self, length):
-        self.length = length
+        """
+        Set the length of the timeline.
+        :param length: Length of the timeline in seconds
+        """
+        self.time_length = length
+        self.pix_length = self.time_length * self.SCALE  # Length of the timeline in pixels
         self.update_tick_marks()
 
 
@@ -139,11 +168,20 @@ class KeyframeItem(QGraphicsPixmapItem):
             half_width = self.boundingRect().width() / 2
             if value.x() < self.timeline.x() - half_width:
                 new_x = self.timeline.x() - half_width
-            elif value.x() > self.timeline.x() + self.timeline.length - half_width:
-                new_x = self.timeline.x() + self.timeline.length - half_width
+            elif value.x() > self.timeline.x() + self.timeline.get_pix_length() - half_width:
+                new_x = self.timeline.x() + self.timeline.get_pix_length() - half_width
             else:
                 new_x = value.x()
-            return QPointF(new_x, 0)
+
+            new_pos = QPointF(new_x, 0)
+
+            # Update the info text
+            from .animation import format_time
+            time = self.timeline.get_time_for_pos(new_pos)
+            self.hover_info.setPlainText(format_time(time))
+
+            return new_pos
+
         return super().itemChange(change, value)
 
 
@@ -162,8 +200,8 @@ class TimelineCursor(QGraphicsLineItem):
             # Clamp the cursor to the timeline
             if value.x() < self.timeline.x():
                 return QPointF(self.timeline.x(), self.y())
-            elif value.x() > self.timeline.x() + self.timeline.length:
-                return QPointF(self.timeline.x() + self.timeline.length, self.y())
+            elif value.x() > self.timeline.x() + self.timeline.get_pix_length():
+                return QPointF(self.timeline.x() + self.timeline.get_pix_length(), self.y())
             return QPointF(value.x(), self.y())
         return super().itemChange(change, value)
 
