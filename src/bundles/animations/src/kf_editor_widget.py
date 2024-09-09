@@ -1,9 +1,21 @@
 from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
     QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton
-from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
+from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, pyqtSignal
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
+
+
+class KFESignalManager(QObject):
+    _instance = None
+
+    keyframe_time_edit = pyqtSignal(tuple)  # (keyframe_name, new_time)
+    preview_time_changed = pyqtSignal(float)
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(KFESignalManager, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
 
 class KeyframeEditorWidget(QWidget):
