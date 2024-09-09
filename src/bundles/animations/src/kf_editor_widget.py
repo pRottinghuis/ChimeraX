@@ -43,6 +43,7 @@ class KeyframeEditorScene(QGraphicsScene):
 
         anim_triggers.add_handler(Animation.KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
         anim_triggers.add_handler(Animation.KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data))
+        anim_triggers.add_handler(Animation.KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
 
     def add_kf_item(self, kf):
         """
@@ -72,6 +73,14 @@ class KeyframeEditorScene(QGraphicsScene):
         if keyframe_item is None:
             raise ValueError(f"Keyframe graphics item with name {kf.get_name()} not found.")
         keyframe_item.set_position_from_time(kf.get_time())
+
+    def delete_kf_item(self, kf):
+        """
+        Delete a keyframe item from the scene.
+        :param kf: animations.Keyframe object
+        """
+        keyframe_item = self.keyframes.pop(kf.get_name())
+        self.removeItem(keyframe_item)
 
     def update_scene_size(self):
         scene_width = self.timeline.get_pix_length() + 20  # Slightly wider than the timeline
