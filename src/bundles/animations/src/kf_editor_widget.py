@@ -41,7 +41,7 @@ class KeyframeEditorScene(QGraphicsScene):
         for kf in keyframes:
             self.add_kf_item(kf)
 
-        anim_triggers.add_handler(Animation.KF_ADDED, self.handle_kf_added)
+        anim_triggers.add_handler(Animation.KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
 
     def add_kf_item(self, kf):
         """
