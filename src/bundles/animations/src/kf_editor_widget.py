@@ -36,7 +36,7 @@ class KeyframeEditorScene(QGraphicsScene):
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
         self.addItem(self.cursor)
-        self.keyframes = []
+        self.keyframes = {}
 
         for kf in keyframes:
             self.add_kf_item(kf)
@@ -59,7 +59,7 @@ class KeyframeEditorScene(QGraphicsScene):
         # automatically does a pos to time conversion based on the timeline.
         # However, 1 pixel change may be a 0.02 change in time.
         keyframe_item.set_info_time(kf.get_time())
-        self.keyframes.append(keyframe_item)
+        self.keyframes[kf.get_name()] = keyframe_item
         self.addItem(keyframe_item)
 
     def update_scene_size(self):
