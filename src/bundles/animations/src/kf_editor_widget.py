@@ -30,7 +30,7 @@ class KeyframeEditorWidget(QWidget):
 class KeyframeEditorScene(QGraphicsScene):
     def __init__(self, length, keyframes):
         super().__init__()
-        self.timeline = Timeline(time_length=length)  # TODO remove *60 temp fix by scaling in the timeline object
+        self.timeline = Timeline(time_length=length)
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
         self.addItem(self.cursor)
@@ -40,8 +40,9 @@ class KeyframeEditorScene(QGraphicsScene):
             thumbnail_bytes = kf.get_thumbnail()
             pixmap = QPixmap()
             pixmap.loadFromData(thumbnail_bytes, "JPEG")
-            pixmap = pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            keyframe_item = KeyframeItem(pixmap, QPointF(self.timeline.get_pos_for_time(kf.get_time()), 0), self.timeline)  # TODO remove *60 scaling once timeline is fixed
+            pixmap = pixmap.scaled(KeyframeItem.SIZE, KeyframeItem.SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            kf_item_x = self.timeline.get_pos_for_time(kf.get_time()) - KeyframeItem.SIZE / 2
+            keyframe_item = KeyframeItem(pixmap, QPointF(kf_item_x, 0), self.timeline)
             self.keyframes.append(keyframe_item)
             self.addItem(keyframe_item)
 
@@ -108,12 +109,12 @@ class Timeline(QGraphicsItemGroup):
     def get_pos_for_time(self, time):
         return round(time * self.SCALE)
 
-    def get_time_for_pos(self, position):
+    def get_time_for_pos(self, pos_x):
         """
         Convert a position on the timeline to a time in seconds.
-        :param position: QPointF position on the timeline
+        :param pos_x: X position on the timeline
         """
-        calc_time = position.x() / self.SCALE
+        calc_time = pos_x / self.SCALE
         if calc_time < 0:
             return 0
         elif calc_time > self.time_length:
@@ -132,6 +133,9 @@ class Timeline(QGraphicsItemGroup):
 
 
 class KeyframeItem(QGraphicsPixmapItem):
+
+    SIZE = 50
+
     def __init__(self, pixmap, position, timeline: Timeline):
         super().__init__(pixmap)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
@@ -173,14 +177,12 @@ class KeyframeItem(QGraphicsPixmapItem):
             else:
                 new_x = value.x()
 
-            new_pos = QPointF(new_x, 0)
-
             # Update the info text
             from .animation import format_time
-            time = self.timeline.get_time_for_pos(new_pos)
+            time = self.timeline.get_time_for_pos(new_x + half_width)
             self.hover_info.setPlainText(format_time(time))
 
-            return new_pos
+            return QPointF(new_x, 0)
 
         return super().itemChange(change, value)
 

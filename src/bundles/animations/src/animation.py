@@ -89,7 +89,7 @@ class Animation(StateManager):
         self.logger.info(f"Created keyframe: {keyframe_name} at time: {format_time(kf_time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
-        if self.keyframe_exists(keyframe_name):
+        if not self.keyframe_exists(keyframe_name):
             self.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
         # Extend the length of the animation if needed
