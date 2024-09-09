@@ -31,7 +31,9 @@ class AnimationsTool(ToolInstance):
         vbox = QVBoxLayout()
         from .kf_editor_widget import KeyframeEditorWidget
         animation_mgr = self.session.get_state_manager("animations")
-        vbox.addWidget(KeyframeEditorWidget(animation_mgr.get_time_length(), animation_mgr.get_keyframes()))
+        kf_editor_widget = KeyframeEditorWidget(animation_mgr.get_time_length(), animation_mgr.get_keyframes(),
+                                                 animation_mgr.get_triggers())
+        vbox.addWidget(kf_editor_widget)
         self.tool_window.ui_area.setLayout(vbox)
 
     def take_snapshot(self, session, flags):

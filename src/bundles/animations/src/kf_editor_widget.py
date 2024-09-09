@@ -2,10 +2,11 @@ from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem
     QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
 from Qt.QtGui import QPixmap, QPen
+from .animation import Animation
 
 
 class KeyframeEditorWidget(QWidget):
-    def __init__(self, length, keyframes):
+    def __init__(self, length, keyframes, anim_triggers):
         """
         :param length: Length of the timeline in seconds
         :param keyframes: List of animation.Keyframe objects
@@ -13,7 +14,7 @@ class KeyframeEditorWidget(QWidget):
         super().__init__()
         self.layout = QVBoxLayout(self)
         self.kfe_view = QGraphicsView(self)
-        self.kfe_scene = KeyframeEditorScene(length, keyframes)
+        self.kfe_scene = KeyframeEditorScene(length, keyframes, anim_triggers)
         self.kfe_view.setScene(self.kfe_scene)
 
         self.sample_button = QPushButton("Sample Button")
@@ -28,7 +29,7 @@ class KeyframeEditorWidget(QWidget):
 
 
 class KeyframeEditorScene(QGraphicsScene):
-    def __init__(self, length, keyframes):
+    def __init__(self, length, keyframes, anim_triggers):
         super().__init__()
         self.timeline = Timeline(time_length=length)
         self.addItem(self.timeline)
@@ -37,14 +38,27 @@ class KeyframeEditorScene(QGraphicsScene):
         self.keyframes = []
 
         for kf in keyframes:
-            thumbnail_bytes = kf.get_thumbnail()
-            pixmap = QPixmap()
-            pixmap.loadFromData(thumbnail_bytes, "JPEG")
-            pixmap = pixmap.scaled(KeyframeItem.SIZE, KeyframeItem.SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            kf_item_x = self.timeline.get_pos_for_time(kf.get_time()) - KeyframeItem.SIZE / 2
-            keyframe_item = KeyframeItem(pixmap, QPointF(kf_item_x, 0), self.timeline)
-            self.keyframes.append(keyframe_item)
-            self.addItem(keyframe_item)
+            self.add_kf_item(kf)
+
+        anim_triggers.add_handler(Animation.KF_ADDED, self.handle_kf_added)
+
+    def add_kf_item(self, kf):
+        """
+        Add a keyframe item to the scene.
+        :param kf: animations.Keyframe object
+        """
+        thumbnail_bytes = kf.get_thumbnail()
+        pixmap = QPixmap()
+        pixmap.loadFromData(thumbnail_bytes, "JPEG")
+        pixmap = pixmap.scaled(KeyframeItem.SIZE, KeyframeItem.SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        kf_item_x = self.timeline.get_pos_for_time(kf.get_time()) - KeyframeItem.SIZE / 2
+        keyframe_item = KeyframeItem(pixmap, QPointF(kf_item_x, 0),
+                                     self.timeline)
+        self.keyframes.append(keyframe_item)
+        self.addItem(keyframe_item)
+
+    def handle_kf_added(self, trigger_name, kf):
+        self.add_kf_item(kf)
 
     def update_scene_size(self):
         scene_width = self.timeline.get_pix_length() + 20  # Slightly wider than the timeline

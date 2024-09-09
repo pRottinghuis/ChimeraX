@@ -391,6 +391,9 @@ class Animation(StateManager):
     def get_frame_rate(self):
         return self.fps
 
+    def get_triggers(self):
+        return self.triggers
+
     def reset_state(self, session):
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
