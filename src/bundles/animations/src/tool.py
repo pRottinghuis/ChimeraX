@@ -35,12 +35,15 @@ class AnimationsTool(ToolInstance):
         self.tool_window.manage("side")
 
     def build_ui(self):
-        vbox = QVBoxLayout()
+        main_vbox_layout = QVBoxLayout()
+
+        # Keyframe editor graphics view widget.
         from .kf_editor_widget import KeyframeEditorWidget
         animation_mgr = self.session.get_state_manager("animations")
         kf_editor_widget = KeyframeEditorWidget(animation_mgr.get_time_length(), animation_mgr.get_keyframes())
-        vbox.addWidget(kf_editor_widget)
-        self.tool_window.ui_area.setLayout(vbox)
+        main_vbox_layout.addWidget(kf_editor_widget)
+
+        self.tool_window.ui_area.setLayout(main_vbox_layout)
 
     def take_snapshot(self, session, flags):
         return {
