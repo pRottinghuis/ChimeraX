@@ -31,6 +31,7 @@ class KeyframeEditorWidget(QWidget):
         self.rewind_button = QPushButton()
         self.rewind_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekBackward))
         self.button_layout.addWidget(self.rewind_button)
+        self.rewind_button.clicked.connect(lambda: self.kfe_scene.get_cursor().set_pos_from_time(0))
 
         # Play button
         self.play_button = QPushButton()
@@ -243,6 +244,9 @@ class Timeline(QGraphicsItemGroup):
         self.time_length = length
         self.pix_length = round(self.time_length * self.SCALE)
         self.update_tick_marks()
+
+    def get_time_length(self):
+        return self.time_length
 
 
 class KeyframeItem(QGraphicsPixmapItem):
