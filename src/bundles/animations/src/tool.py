@@ -4,6 +4,8 @@ from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
 from Qt.QtGui import QPixmap, QPen
 from .kf_editor_widget import KeyframeEditorWidget
+from .triggers import add_handler, KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW
+from chimerax.core.commands import run
 
 
 class AnimationsTool(ToolInstance):
@@ -25,6 +27,9 @@ class AnimationsTool(ToolInstance):
 
         # test scene thumbnails
         self.build_ui()
+
+        # Register handlers for the triggers
+        add_handler(PREVIEW, lambda trigger_name, time: run(self.session, f"animations preview {time}"))
 
         self.tool_window.manage("side")
 

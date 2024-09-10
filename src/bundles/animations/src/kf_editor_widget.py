@@ -259,7 +259,7 @@ class TimelineCursor(QGraphicsLineItem):
         self.setX(new_x)
 
     def mouseReleaseEvent(self, event):
-        new_time = float(self.timeline.get_time_for_pos(self.x()))
+        new_time = round(float(self.timeline.get_time_for_pos(self.x())), 2)
         activate_trigger(PREVIEW, new_time)
         super().mouseReleaseEvent(event)
 
