@@ -4,13 +4,11 @@ from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
-from .signaler import KFESignalManager
-
-signal_manager = KFESignalManager()
+from .triggers import MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, add_handler
 
 
 class KeyframeEditorWidget(QWidget):
-    def __init__(self, length, keyframes, anim_triggers):
+    def __init__(self, length, keyframes):
         """
         :param length: Length of the timeline in seconds
         :param keyframes: List of animation.Keyframe objects
@@ -18,7 +16,7 @@ class KeyframeEditorWidget(QWidget):
         super().__init__()
         self.layout = QVBoxLayout(self)
         self.kfe_view = QGraphicsView(self)
-        self.kfe_scene = KeyframeEditorScene(length, keyframes, anim_triggers)
+        self.kfe_scene = KeyframeEditorScene(length, keyframes)
         self.kfe_view.setScene(self.kfe_scene)
 
         self.sample_button = QPushButton("Sample Button")
@@ -33,7 +31,7 @@ class KeyframeEditorWidget(QWidget):
 
 
 class KeyframeEditorScene(QGraphicsScene):
-    def __init__(self, length, keyframes, anim_triggers):
+    def __init__(self, length, keyframes):
         super().__init__()
         self.timeline = Timeline(time_length=length)
         self.addItem(self.timeline)
@@ -45,12 +43,11 @@ class KeyframeEditorScene(QGraphicsScene):
             self.add_kf_item(kf)
 
         # Connect triggers from the animation manager in the session to the keyframe editor
-        anim_triggers.add_handler(Animation.KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
-        anim_triggers.add_handler(Animation.KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data))
-        anim_triggers.add_handler(Animation.KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
-        anim_triggers.add_handler(
-            Animation.LENGTH_CHANGE, lambda trigger_name, data: self.set_timeline_length(data))
-        anim_triggers.add_handler(Animation.PREVIEW, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
+        add_handler(MGR_KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
+        add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data))
+        add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
+        add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.set_timeline_length(data))
+        add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
 
     def add_kf_item(self, kf):
         """

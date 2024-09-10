@@ -3,7 +3,7 @@ from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem
     QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
 from Qt.QtGui import QPixmap, QPen
-from .kf_editor_widget import KeyframeEditorWidget, KFESignalManager
+from .kf_editor_widget import KeyframeEditorWidget
 
 
 class AnimationsTool(ToolInstance):
@@ -32,8 +32,7 @@ class AnimationsTool(ToolInstance):
         vbox = QVBoxLayout()
         from .kf_editor_widget import KeyframeEditorWidget
         animation_mgr = self.session.get_state_manager("animations")
-        kf_editor_widget = KeyframeEditorWidget(animation_mgr.get_time_length(), animation_mgr.get_keyframes(),
-                                                 animation_mgr.get_triggers())
+        kf_editor_widget = KeyframeEditorWidget(animation_mgr.get_time_length(), animation_mgr.get_keyframes())
         vbox.addWidget(kf_editor_widget)
         self.tool_window.ui_area.setLayout(vbox)
 
