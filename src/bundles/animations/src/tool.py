@@ -2,6 +2,7 @@ from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
 from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY
 from chimerax.core.commands import run
+from .kf_editor_widget import KeyframeEditorWidget
 
 
 class AnimationsTool(ToolInstance):
@@ -17,6 +18,9 @@ class AnimationsTool(ToolInstance):
         # Set name displayed on title bar (defaults to tool_name)
         # Must be after the superclass init, which would override it.
         self.display_name = "Animations"
+
+        # Store a reference to the animation manager
+        self.animation_mgr = self.session.get_state_manager("animations")
 
         from chimerax.ui import MainToolWindow
         self.tool_window = MainToolWindow(self)
@@ -35,9 +39,7 @@ class AnimationsTool(ToolInstance):
         main_vbox_layout = QVBoxLayout()
 
         # Keyframe editor graphics view widget.
-        from .kf_editor_widget import KeyframeEditorWidget
-        animation_mgr = self.session.get_state_manager("animations")
-        kf_editor_widget = KeyframeEditorWidget(animation_mgr.get_time_length(), animation_mgr.get_keyframes())
+        kf_editor_widget = KeyframeEditorWidget(self.animation_mgr.get_time_length(), self.animation_mgr.get_keyframes())
         main_vbox_layout.addWidget(kf_editor_widget)
 
         self.tool_window.ui_area.setLayout(main_vbox_layout)
