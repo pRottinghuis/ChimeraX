@@ -56,6 +56,7 @@ class KeyframeEditorWidget(QWidget):
         cursor = self.kfe_scene.get_cursor()
         timeline_len = self.kfe_scene.timeline.get_time_length()
         cursor.set_pos_from_time(timeline_len)
+        self.kfe_view.horizontalScrollBar().setValue(self.kfe_view.horizontalScrollBar().maximum())
 
 
 class KFEGraphicsView(QGraphicsView):
