@@ -27,11 +27,6 @@ class KeyframeEditorWidget(QWidget):
 
         self.layout.addWidget(self.kfe_view)
 
-        signal_manager.preview_time_changed.connect(self.move_keyframe_item)
-
-    def move_keyframe_item(self, keyframe_name, new_time):
-        pass
-
     def sample_button_clicked(self):
         len_update = self.kfe_scene.timeline.time_length + 1
         self.kfe_scene.set_timeline_length(len_update)
@@ -267,9 +262,6 @@ class TimelineCursor(QGraphicsLineItem):
 
     def mouseReleaseEvent(self, event):
         new_time = float(self.timeline.get_time_for_pos(self.x()))
-        signal_manager.inst_check = 0
-        print("Emitting preview time changed signal with time:" + str(new_time))
-        signal_manager.preview_time_changed.emit(new_time)
         super().mouseReleaseEvent(event)
 
 
