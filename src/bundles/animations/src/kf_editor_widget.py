@@ -1,5 +1,7 @@
-from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
-    QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton, QSizePolicy
+from Qt.QtWidgets import (QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene,
+                          QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton,
+                          QSizePolicy,
+                          QHBoxLayout, QStyle)
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize, QTimer
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
@@ -21,6 +23,31 @@ class KeyframeEditorWidget(QWidget):
         self.kfe_view.setScene(self.kfe_scene)
 
         self.layout.addWidget(self.kfe_view)
+
+        # Horizontal layout for navigation buttons
+        self.button_layout = QHBoxLayout()
+
+        # Rewind button
+        self.rewind_button = QPushButton()
+        self.rewind_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekBackward))
+        self.button_layout.addWidget(self.rewind_button)
+
+        # Play button
+        self.play_button = QPushButton()
+        self.play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.button_layout.addWidget(self.play_button)
+
+        # Pause button
+        self.pause_button = QPushButton()
+        self.pause_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+        self.button_layout.addWidget(self.pause_button)
+
+        # Fast forward button
+        self.fast_forward_button = QPushButton()
+        self.fast_forward_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekForward))
+        self.button_layout.addWidget(self.fast_forward_button)
+
+        self.layout.addLayout(self.button_layout)
 
 
 class KFEGraphicsView(QGraphicsView):
@@ -146,7 +173,6 @@ class KeyframeEditorScene(QGraphicsScene):
 
 
 class Timeline(QGraphicsItemGroup):
-
     SCALE = 60  # Scale factor. Pixels per second.
 
     def __init__(self, time_length=5, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
@@ -216,7 +242,6 @@ class Timeline(QGraphicsItemGroup):
 
 
 class KeyframeItem(QGraphicsPixmapItem):
-
     SIZE = 50
 
     def __init__(self, name, pixmap, position, timeline: Timeline):
