@@ -1,10 +1,6 @@
 from chimerax.core.tools import ToolInstance
-from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
-    QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem
-from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
-from Qt.QtGui import QPixmap, QPen
-from .kf_editor_widget import KeyframeEditorWidget
-from .triggers import add_handler, KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW
+from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
+from .triggers import add_handler, KF_EDIT, PREVIEW
 from chimerax.core.commands import run
 
 
