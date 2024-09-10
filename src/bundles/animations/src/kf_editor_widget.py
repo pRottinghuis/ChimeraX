@@ -48,8 +48,14 @@ class KeyframeEditorWidget(QWidget):
         self.fast_forward_button = QPushButton()
         self.fast_forward_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekForward))
         self.button_layout.addWidget(self.fast_forward_button)
+        self.fast_forward_button.clicked.connect(self.fast_forward)
 
         self.layout.addLayout(self.button_layout)
+
+    def fast_forward(self):
+        cursor = self.kfe_scene.get_cursor()
+        timeline_len = self.kfe_scene.timeline.get_time_length()
+        cursor.set_pos_from_time(timeline_len)
 
 
 class KFEGraphicsView(QGraphicsView):
