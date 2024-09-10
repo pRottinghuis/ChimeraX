@@ -255,7 +255,6 @@ class KeyframeItem(QGraphicsPixmapItem):
         return new_x
 
     def mouseReleaseEvent(self, event):
-        # TODO fix bug where multiple pixle ranges will try and edit the keyframe to the same time.
         new_time = (float(self.timeline.get_time_for_pos(self.x() + self.boundingRect().width() / 2)))
         activate_trigger(KF_EDIT, (self.name, new_time))
         super().mouseReleaseEvent(event)

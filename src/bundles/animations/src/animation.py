@@ -85,6 +85,10 @@ class Animation(StateManager):
         if not self.keyframe_exists(keyframe_name):
             self.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
+        kf: Keyframe = self.get_keyframe(keyframe_name)
+        if kf.get_time() == time:
+            self.logger.warning(f"{keyframe_name} is already at time {time}.")
+            return
         # Extend the length of the animation if needed
         if time > self.length:
             if time > self.MAX_LENGTH:
@@ -94,7 +98,6 @@ class Animation(StateManager):
             self.set_length(time)
         if not self.validate_time(time):
             return
-        kf: Keyframe = self.get_keyframe(keyframe_name)
         kf.set_time(time)
         self._sort_keyframes()
         self._need_frames_update = True
