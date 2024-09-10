@@ -5,7 +5,7 @@ from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
-                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, add_handler, activate_trigger)
+                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, add_handler, activate_trigger, MGR_FRAME_PLAYED)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -49,6 +49,7 @@ class KeyframeEditorScene(QGraphicsScene):
         add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
         add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.set_timeline_length(data))
         add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
+        add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
 
     def add_kf_item(self, kf):
         """
