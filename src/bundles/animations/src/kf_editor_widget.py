@@ -60,7 +60,7 @@ class KeyframeEditorScene(QGraphicsScene):
         pixmap.loadFromData(thumbnail_bytes, "JPEG")
         pixmap = pixmap.scaled(KeyframeItem.SIZE, KeyframeItem.SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         kf_item_x = self.timeline.get_pos_for_time(kf.get_time()) - KeyframeItem.SIZE / 2
-        keyframe_item = KeyframeItem(pixmap, QPointF(kf_item_x, 0),
+        keyframe_item = KeyframeItem(kf.get_name(), pixmap, QPointF(kf_item_x, 0),
                                      self.timeline)
         # Need to update the info label on the keyframe graphic item. Placing on the timeline
         # automatically does a pos to time conversion based on the timeline.
@@ -177,10 +177,11 @@ class KeyframeItem(QGraphicsPixmapItem):
 
     SIZE = 50
 
-    def __init__(self, pixmap, position, timeline: Timeline):
+    def __init__(self, name, pixmap, position, timeline: Timeline):
         super().__init__(pixmap)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
+        self.name = name
         # hold onto a reference to the timeline so that update each keyframe based on the timeline.
         # Timeline must be initialized before any itemChange like position is made.
         self.timeline = timeline
@@ -252,6 +253,11 @@ class KeyframeItem(QGraphicsPixmapItem):
                     else:
                         new_x -= 1
         return new_x
+
+    def mouseReleaseEvent(self, event):
+        new_time = (float(self.timeline.get_time_for_pos(self.x() + self.boundingRect().width() / 2)))
+        activate_trigger(KF_EDIT, (self.name, new_time))
+        super().mouseReleaseEvent(event)
 
     def set_position_from_time(self, time):
         new_x = self.timeline.get_pos_for_time(time) - self.boundingRect().width() / 2

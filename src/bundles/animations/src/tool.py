@@ -30,6 +30,7 @@ class AnimationsTool(ToolInstance):
 
         # Register handlers for the triggers
         add_handler(PREVIEW, lambda trigger_name, time: run(self.session, f"animations preview {time}"))
+        add_handler(KF_EDIT, lambda trigger_name, data: run(self.session, f"animations keyframe edit {data[0]} time {data[1]}"))
 
         self.tool_window.manage("side")
 
