@@ -52,12 +52,22 @@ class KFEGraphicsView(QGraphicsView):
             return
 
         cursor_pos = self.mapFromGlobal(self.cursor().pos())
-        scroll_margin = 20  # Margin in pixels to start scrolling
 
-        if cursor_pos.x() < scroll_margin:
-            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - 10)
-        elif cursor_pos.x() > self.viewport().width() - scroll_margin:
-            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + 10)
+        # slow scroll margin must be > fast scroll margin. Refers to how many pixels from the edge into the view
+        slow_scroll_margin = 20  # Margin in pixels to start slow scrolling
+        fast_scroll_margin = -20  # Margin in pixels to start fast scrolling
+
+        scroll_speed = 10  # Pixels per scroll
+        fast_scroll_speed = 50  # Pixels per scroll
+
+        if cursor_pos.x() < fast_scroll_margin:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - fast_scroll_speed)
+        if cursor_pos.x() < slow_scroll_margin:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - scroll_speed)
+        elif cursor_pos.x() > self.viewport().width() - fast_scroll_margin:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + fast_scroll_speed)
+        elif cursor_pos.x() > self.viewport().width() - slow_scroll_margin:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + scroll_speed)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
