@@ -20,15 +20,7 @@ class KeyframeEditorWidget(QWidget):
         self.kfe_scene = KeyframeEditorScene(length, keyframes)
         self.kfe_view.setScene(self.kfe_scene)
 
-        self.sample_button = QPushButton("Sample Button")
-        self.sample_button.clicked.connect(self.sample_button_clicked)
-        self.layout.addWidget(self.sample_button)
-
         self.layout.addWidget(self.kfe_view)
-
-    def sample_button_clicked(self):
-        len_update = self.kfe_scene.timeline.time_length + 1
-        self.kfe_scene.set_timeline_length(len_update)
 
 
 class KFEGraphicsView(QGraphicsView):
