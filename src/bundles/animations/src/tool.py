@@ -1,6 +1,6 @@
 from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
-from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY
+from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD
 from chimerax.core.commands import run
 from .kf_editor_widget import KeyframeEditorWidget
 
@@ -32,6 +32,7 @@ class AnimationsTool(ToolInstance):
         add_handler(PREVIEW, lambda trigger_name, time: run(self.session, f"animations preview {time}"))
         add_handler(KF_EDIT, lambda trigger_name, data: run(self.session, f"animations keyframe edit {data[0]} time {data[1]}"))
         add_handler(PLAY, lambda trigger_name, data: run(self.session, f"animations play start {data[0]} reverse {data[1]}"))
+        add_handler(KF_ADD, lambda trigger_name, time: self.add_keyframe(time))
 
         self.tool_window.manage("side")
 
@@ -43,6 +44,14 @@ class AnimationsTool(ToolInstance):
         main_vbox_layout.addWidget(kf_editor_widget)
 
         self.tool_window.ui_area.setLayout(main_vbox_layout)
+
+    def add_keyframe(self, time):
+        base_name = "keyframe_"
+        id = 0
+        while any(kf.get_name() == f"{base_name}{id}" for kf in self.animation_mgr.get_keyframes()):
+            id += 1
+        kf_name = f"{base_name}{id}"
+        run(self.session, f"animations keyframe add {kf_name} time {time}")
 
     def take_snapshot(self, session, flags):
         return {
