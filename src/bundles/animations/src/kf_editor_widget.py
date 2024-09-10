@@ -38,8 +38,7 @@ class KFEGraphicsView(QGraphicsView):
     def sizeHint(self):
         # Get the current scene rectangle
         scene_rect = self.scene().sceneRect()
-        # Calculate the size hint based on the scene's height and width with extra space
-        width = min(700, int(scene_rect.width() + 2 * 30))
+        width = min(700, int(scene_rect.width()))
         height = int(scene_rect.height() + 90)
         return QSize(width, height)
 
