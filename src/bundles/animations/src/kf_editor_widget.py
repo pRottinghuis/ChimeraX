@@ -4,7 +4,8 @@ from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
-from .triggers import MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, add_handler
+from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
+                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, add_handler, activate_trigger)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -259,6 +260,7 @@ class TimelineCursor(QGraphicsLineItem):
 
     def mouseReleaseEvent(self, event):
         new_time = float(self.timeline.get_time_for_pos(self.x()))
+        activate_trigger(PREVIEW, new_time)
         super().mouseReleaseEvent(event)
 
 
