@@ -31,7 +31,7 @@ class KeyframeEditorWidget(QWidget):
         self.rewind_button = QPushButton()
         self.rewind_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekBackward))
         self.button_layout.addWidget(self.rewind_button)
-        self.rewind_button.clicked.connect(lambda: self.kfe_scene.get_cursor().set_pos_from_time(0))
+        self.rewind_button.clicked.connect(self.rewind)
 
         # Play button
         self.play_button = QPushButton()
@@ -51,6 +51,11 @@ class KeyframeEditorWidget(QWidget):
         self.fast_forward_button.clicked.connect(self.fast_forward)
 
         self.layout.addLayout(self.button_layout)
+
+    def rewind(self):
+        cursor = self.kfe_scene.get_cursor()
+        cursor.set_pos_from_time(0)
+        self.kfe_view.horizontalScrollBar().setValue(0)
 
     def fast_forward(self):
         cursor = self.kfe_scene.get_cursor()
