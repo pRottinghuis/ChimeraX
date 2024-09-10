@@ -8,9 +8,9 @@ MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, 
     "animations mgr length changed", "animations mgr previewed", "animations mgr frame played")
 
 # Signals for if the animation manager needs to make an action
-KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW = external_triggers = (
+KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY = external_triggers = (
     "animations keyframe add", "animations keyframe delete", "animations keyframe edit", "animations length change",
-    "animations preview")
+    "animations preview", "animations play")
 
 _triggers = TriggerSet()
 
