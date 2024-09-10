@@ -2,8 +2,8 @@ from chimerax.core.state import StateManager, State
 from chimerax.core.commands.motion import CallForNFrames
 from chimerax.core.commands.run import run
 from chimerax.core.triggerset import TriggerSet
-from .triggers import MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, activate_trigger
-
+from .triggers import MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, activate_trigger, \
+    MGR_FRAME_PLAYED
 
 import io
 
@@ -186,7 +186,7 @@ class Animation(StateManager):
 
         self.logger.status(f"Playing animation...")
 
-        start_frame = round(self.fps * start_time)
+        start_frame = max(0, min(round(self.fps * start_time), len(self._lerp_steps) - 1))
 
         # callback function for each frame
         def frame_cb(session, f):
@@ -205,6 +205,8 @@ class Animation(StateManager):
                 self._is_playing = False
                 self.logger.status(f"Finished playing animation.")
                 self._try_end_recording()
+
+            activate_trigger(MGR_FRAME_PLAYED, frame_num / self.fps)
 
         # Calculate how many frames need to be played between start_frame and the end of the animation. Take reverse
         # into account
