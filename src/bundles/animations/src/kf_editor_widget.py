@@ -1,6 +1,6 @@
 from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
-    QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton
-from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize
+    QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton, QSizePolicy
+from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize, QTimer
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
@@ -34,6 +34,11 @@ class KeyframeEditorWidget(QWidget):
 class KFEGraphicsView(QGraphicsView):
     def __init__(self, scene):
         super().__init__(scene)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.scroll_timer = QTimer(self)
+        self.scroll_timer.timeout.connect(self.auto_scroll)
+        self.scroll_timer.start(50)  # Check every 50 ms
+        self._is_dragging_cursor = False
 
     def sizeHint(self):
         # Get the current scene rectangle
@@ -41,6 +46,28 @@ class KFEGraphicsView(QGraphicsView):
         width = min(700, int(scene_rect.width()))
         height = int(scene_rect.height() + 90)
         return QSize(width, height)
+
+    def auto_scroll(self):
+        if not self._is_dragging_cursor:
+            return
+
+        cursor_pos = self.mapFromGlobal(self.cursor().pos())
+        scroll_margin = 20  # Margin in pixels to start scrolling
+
+        if cursor_pos.x() < scroll_margin:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - 10)
+        elif cursor_pos.x() > self.viewport().width() - scroll_margin:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + 10)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._is_dragging_cursor = True
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._is_dragging_cursor = False
+        super().mouseReleaseEvent(event)
 
 
 class KeyframeEditorScene(QGraphicsScene):
