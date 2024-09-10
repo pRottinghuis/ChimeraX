@@ -50,6 +50,15 @@ class KeyframeEditorWidget(QWidget):
         self.button_layout.addWidget(self.fast_forward_button)
         self.fast_forward_button.clicked.connect(self.fast_forward)
 
+        # Add button
+        self.add_button = QPushButton("Add")
+        self.button_layout.addWidget(self.add_button)
+        self.add_button.clicked.connect(lambda: activate_trigger(KF_ADD, self.kfe_scene.get_cursor().get_time()))
+
+        # Delete button
+        self.delete_button = QPushButton("Delete")
+        self.button_layout.addWidget(self.delete_button)
+
         self.layout.addLayout(self.button_layout)
 
     def rewind(self):
