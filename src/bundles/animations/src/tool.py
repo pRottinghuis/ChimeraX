@@ -1,6 +1,6 @@
 from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
-from .triggers import add_handler, KF_EDIT, PREVIEW
+from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY
 from chimerax.core.commands import run
 
 
@@ -27,6 +27,7 @@ class AnimationsTool(ToolInstance):
         # Register handlers for the triggers
         add_handler(PREVIEW, lambda trigger_name, time: run(self.session, f"animations preview {time}"))
         add_handler(KF_EDIT, lambda trigger_name, data: run(self.session, f"animations keyframe edit {data[0]} time {data[1]}"))
+        add_handler(PLAY, lambda trigger_name, data: run(self.session, f"animations play start {data[0]} reverse {data[1]}"))
 
         self.tool_window.manage("side")
 

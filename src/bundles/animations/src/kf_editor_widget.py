@@ -7,7 +7,7 @@ from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
-                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, add_handler, activate_trigger, MGR_FRAME_PLAYED)
+                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger, MGR_FRAME_PLAYED)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -36,6 +36,7 @@ class KeyframeEditorWidget(QWidget):
         self.play_button = QPushButton()
         self.play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self.button_layout.addWidget(self.play_button)
+        self.play_button.clicked.connect(lambda: activate_trigger(PLAY, (self.kfe_scene.cursor.get_time(), False)))
 
         # Pause button
         self.pause_button = QPushButton()
@@ -357,6 +358,9 @@ class TimelineCursor(QGraphicsLineItem):
     def set_pos_from_time(self, time):
         new_x = self.timeline.get_pos_for_time(time)
         self.setX(new_x)
+
+    def get_time(self):
+        return self.timeline.get_time_for_pos(self.x())
 
     def mouseReleaseEvent(self, event):
         new_time = round(float(self.timeline.get_time_for_pos(self.x())), 2)
