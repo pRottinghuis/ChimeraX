@@ -2,6 +2,8 @@ from chimerax.core.state import StateManager, State
 from chimerax.core.commands.motion import CallForNFrames
 from chimerax.core.commands.run import run
 from chimerax.core.triggerset import TriggerSet
+from .triggers import KF_ADDED, KF_DELETED, KF_EDITED, LENGTH_CHANGED, PREVIEWED, activate_trigger
+
 
 import io
 
@@ -21,16 +23,9 @@ class Animation(StateManager):
     fps = 144
     DEFAULT_LENGTH = 5  # in seconds
 
-    KF_ADDED, KF_DELETED, KF_EDITED, LENGTH_CHANGE, PREVIEW = trigger_names = (
-        "animations keyframe added", "animations keyframe deleted", "animations keyframe edited",
-        "animations length change", "animations preview")
-
     def __init__(self, session, *, animation_data=None):
         self.session = session
         self.logger = session.logger
-        self.triggers = TriggerSet()
-        for trigger_name in self.trigger_names:
-            self.triggers.add_trigger(trigger_name)
 
         # list of steps to interpolate animation. Each step is a tuple of (scene_name1, scene_name2, %) interpolation
         # steps
@@ -53,7 +48,7 @@ class Animation(StateManager):
                 if kf is not None:
                     # None means the keyframe couldn't be restored because the scene doesn't exist
                     self.keyframes.append(kf)
-                    self.triggers.activate_trigger(self.KF_ADDED, kf)
+                    activate_trigger(KF_ADDED, kf)
             self.set_length(animation_data['length'])
 
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
@@ -83,7 +78,7 @@ class Animation(StateManager):
         self.keyframes.append(new_kf)
         self._sort_keyframes()
         self._need_frames_update = True
-        self.triggers.activate_trigger(self.KF_ADDED, new_kf)
+        activate_trigger(KF_ADDED, new_kf)
         self.logger.info(f"Created keyframe: {keyframe_name} at time: {format_time(kf_time)}")
 
     def edit_keyframe_time(self, keyframe_name, time):
@@ -103,7 +98,7 @@ class Animation(StateManager):
         kf.set_time(time)
         self._sort_keyframes()
         self._need_frames_update = True
-        self.triggers.activate_trigger(self.KF_EDITED, kf)
+        activate_trigger(KF_EDITED, kf)
         self.logger.info(f"Edited keyframe {keyframe_name} to time: {format_time(time)}")
 
     def delete_keyframe(self, keyframe_name):
@@ -113,13 +108,13 @@ class Animation(StateManager):
         kf_to_delete = self.get_keyframe(keyframe_name)
         self.keyframes.remove(kf_to_delete)
         self._need_frames_update = True
-        self.triggers.activate_trigger(self.KF_DELETED, kf_to_delete)
+        activate_trigger(KF_DELETED, kf_to_delete)
         self.logger.info(f"Deleted keyframe {keyframe_name}")
 
     def delete_all_keyframes(self):
         while len(self.keyframes) > 0:
             kf = self.keyframes.pop()
-            self.triggers.activate_trigger(self.KF_DELETED, kf)
+            activate_trigger(KF_DELETED, kf)
         self._need_frames_update = True
         self.logger.info(f"Deleted all keyframes")
 
@@ -147,7 +142,7 @@ class Animation(StateManager):
         for kf in reversed(self.keyframes):
             if kf.get_time() > target_time:
                 kf.set_time(kf.get_time() + amount_for_insertion)
-                self.triggers.activate_trigger(self.KF_EDITED, kf)
+                activate_trigger(KF_EDITED, kf)
 
         self.logger.info(f"Inserted {amount_for_insertion} seconds at time {target_time}")
 
@@ -176,7 +171,7 @@ class Animation(StateManager):
             step = len(self._lerp_steps) - 1
         scene1, scene2, fraction = self._lerp_steps[step]
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
-        self.triggers.activate_trigger(self.PREVIEW, time)
+        activate_trigger(PREVIEWED, time)
         self.logger.info(f"Previewing animation at time {format_time(time)}")
 
     def play(self, start_time=0, reverse=False):
@@ -300,7 +295,7 @@ class Animation(StateManager):
             return
 
         self.length = length
-        self.triggers.activate_trigger(self.LENGTH_CHANGE, self.length)
+        activate_trigger(LENGTH_CHANGED, self.length)
         # make sure to update the interpolation steps after time is adjusted
         self._need_frames_update = True
         self.logger.info(f"Updated animation length to {format_time(self.length)}")
@@ -387,9 +382,6 @@ class Animation(StateManager):
 
     def get_frame_rate(self):
         return self.fps
-
-    def get_triggers(self):
-        return self.triggers
 
     def reset_state(self, session):
         self._lerp_steps: [(str, str, int | float)] = []
