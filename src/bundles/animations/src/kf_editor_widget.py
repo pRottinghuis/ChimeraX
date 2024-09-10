@@ -218,6 +218,8 @@ class KeyframeItem(QGraphicsPixmapItem):
             else:
                 new_x = value.x()
 
+            new_x = self.avoid_collision(new_x, self.x())
+
             # Update the info text
             time = self.timeline.get_time_for_pos(new_x + half_width)
             self.hover_info.setPlainText(format_time(time))
@@ -225,6 +227,31 @@ class KeyframeItem(QGraphicsPixmapItem):
             return QPointF(new_x, 0)
 
         return super().itemChange(change, value)
+
+    def avoid_collision(self, new_x, old_x):
+        """
+        Check if the new x position is taken by another keyframe item.
+        If it is, move this item over the blocking item in the direction that the drag was initiated.
+        :param new_x: New x position trying to move to
+        :param old_x: Old x position moving from
+        """
+
+        # First time this is called is from the constructor so this GraphicsItem has not been added to the scene yet.
+        if self.scene() is None:
+            return new_x
+
+        # Iterate over all items in the scene
+        for item in self.scene().items():
+            # Check if the item is a KeyframeItem and is not the current item
+            if isinstance(item, KeyframeItem) and item is not self:
+                # Check if the x position is taken by another item
+                if item.x() == new_x:
+                    # Move this item over the blocking item in the direction that the drag was initiated.
+                    if old_x < new_x:
+                        new_x += 1
+                    else:
+                        new_x -= 1
+        return new_x
 
     def set_position_from_time(self, time):
         new_x = self.timeline.get_pos_for_time(time) - self.boundingRect().width() / 2
