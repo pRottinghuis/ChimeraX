@@ -1,21 +1,12 @@
 from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
     QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton
-from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, pyqtSignal
+from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
+from .signaler import KFESignalManager
 
-
-class KFESignalManager(QObject):
-    _instance = None
-
-    keyframe_time_edit = pyqtSignal(tuple)  # (keyframe_name, new_time)
-    preview_time_changed = pyqtSignal(float)
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(KFESignalManager, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
+signal_manager = KFESignalManager()
 
 
 class KeyframeEditorWidget(QWidget):
@@ -35,6 +26,11 @@ class KeyframeEditorWidget(QWidget):
         self.layout.addWidget(self.sample_button)
 
         self.layout.addWidget(self.kfe_view)
+
+        signal_manager.preview_time_changed.connect(self.move_keyframe_item)
+
+    def move_keyframe_item(self, keyframe_name, new_time):
+        pass
 
     def sample_button_clicked(self):
         len_update = self.kfe_scene.timeline.time_length + 1
@@ -268,6 +264,13 @@ class TimelineCursor(QGraphicsLineItem):
     def set_pos_from_time(self, time):
         new_x = self.timeline.get_pos_for_time(time)
         self.setX(new_x)
+
+    def mouseReleaseEvent(self, event):
+        new_time = float(self.timeline.get_time_for_pos(self.x()))
+        signal_manager.inst_check = 0
+        print("Emitting preview time changed signal with time:" + str(new_time))
+        signal_manager.preview_time_changed.emit(new_time)
+        super().mouseReleaseEvent(event)
 
 
 class TickMarkItem(QGraphicsLineItem):

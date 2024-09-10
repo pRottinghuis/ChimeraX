@@ -3,6 +3,7 @@ from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem
     QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF
 from Qt.QtGui import QPixmap, QPen
+from .kf_editor_widget import KeyframeEditorWidget, KFESignalManager
 
 
 class AnimationsTool(ToolInstance):
@@ -25,6 +26,8 @@ class AnimationsTool(ToolInstance):
         # test scene thumbnails
         self.build_ui()
 
+        KFESignalManager().preview_time_changed.connect(self.update_preview_time)
+
         self.tool_window.manage("side")
 
     def build_ui(self):
@@ -35,6 +38,9 @@ class AnimationsTool(ToolInstance):
                                                  animation_mgr.get_triggers())
         vbox.addWidget(kf_editor_widget)
         self.tool_window.ui_area.setLayout(vbox)
+
+    def update_preview_time(self, time: float):
+        print("update preview time to", time)
 
     def take_snapshot(self, session, flags):
         return {
