@@ -1,6 +1,6 @@
 from Qt.QtWidgets import QGridLayout, QLabel, QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene, \
     QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton
-from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal
+from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize
 from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
@@ -16,7 +16,7 @@ class KeyframeEditorWidget(QWidget):
         """
         super().__init__()
         self.layout = QVBoxLayout(self)
-        self.kfe_view = QGraphicsView(self)
+        self.kfe_view = KFEGraphicsView(self)
         self.kfe_scene = KeyframeEditorScene(length, keyframes)
         self.kfe_view.setScene(self.kfe_scene)
 
@@ -29,6 +29,19 @@ class KeyframeEditorWidget(QWidget):
     def sample_button_clicked(self):
         len_update = self.kfe_scene.timeline.time_length + 1
         self.kfe_scene.set_timeline_length(len_update)
+
+
+class KFEGraphicsView(QGraphicsView):
+    def __init__(self, scene):
+        super().__init__(scene)
+
+    def sizeHint(self):
+        # Get the current scene rectangle
+        scene_rect = self.scene().sceneRect()
+        # Calculate the size hint based on the scene's height and width with extra space
+        width = min(700, int(scene_rect.width() + 2 * 30))
+        height = int(scene_rect.height() + 90)
+        return QSize(width, height)
 
 
 class KeyframeEditorScene(QGraphicsScene):
