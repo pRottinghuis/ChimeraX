@@ -3,9 +3,9 @@ from chimerax.core.triggerset import TriggerSet
 from typing import Optional, Any, Callable
 
 # Signals for once the animation manager has made an action
-MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED = manager_triggers = (
+MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, MGR_FRAME_PLAYED = manager_triggers = (
     "animations mgr keyframe added", "animations mgr keyframe deleted", "animations mgr keyframe edited",
-    "animations mgr length changed", "animations mgr previewed")
+    "animations mgr length changed", "animations mgr previewed", "animations mgr frame played")
 
 # Signals for if the animation manager needs to make an action
 KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW = external_triggers = (
