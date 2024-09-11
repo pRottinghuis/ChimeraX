@@ -74,6 +74,7 @@ class KeyframeEditorWidget(QWidget):
         # Delete button
         self.delete_button = QPushButton("Delete")
         self.button_layout.addWidget(self.delete_button)
+        self.delete_button.clicked.connect(lambda: self.delete_keyframes())
 
         self.layout.addLayout(self.button_layout)
 
@@ -90,6 +91,11 @@ class KeyframeEditorWidget(QWidget):
         timeline_len = self.kfe_scene.timeline.get_time_length()
         cursor.set_pos_from_time(timeline_len)
         self.kfe_view.horizontalScrollBar().setValue(self.kfe_view.horizontalScrollBar().maximum())
+
+    def delete_keyframes(self):
+        keyframes = self.kfe_scene.get_selected_keyframes()
+        for keyframe in keyframes:
+            activate_trigger(KF_DELETE, keyframe.get_name())
 
 
 class KFEGraphicsView(QGraphicsView):
@@ -212,6 +218,13 @@ class KeyframeEditorScene(QGraphicsScene):
             if self.timeline.contains(clicked_pos):
                 self.cursor.setPos(clicked_pos)
         super().mousePressEvent(event)
+
+    def get_selected_keyframes(self):
+        selected_keyframes = []
+        for item in self.selectedItems():
+            if isinstance(item, KeyframeItem):
+                selected_keyframes.append(item)
+        return selected_keyframes
 
     def get_cursor(self):
         return self.cursor
@@ -380,6 +393,9 @@ class KeyframeItem(QGraphicsPixmapItem):
 
     def set_info_time(self, time: int | float):
         self.hover_info.setPlainText(format_time(time))
+
+    def get_name(self):
+        return self.name
 
 
 class TimelineCursor(QGraphicsLineItem):
