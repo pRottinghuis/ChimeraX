@@ -167,6 +167,8 @@ class KeyframeEditorScene(QGraphicsScene):
         add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
         add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
 
+        self.selectionChanged.connect(self.on_selection_changed)
+
     def add_kf_item(self, kf):
         """
         Add a keyframe item to the scene.
@@ -225,6 +227,15 @@ class KeyframeEditorScene(QGraphicsScene):
             for keyframes in keyframes:
                 keyframes.trigger_for_edit()
         super().mouseReleaseEvent(event)
+
+    def on_selection_changed(self):
+        selected_keyframes = self.get_selected_keyframes()
+        for item in self.items():
+            if isinstance(item, KeyframeItem):
+                if item not in selected_keyframes:
+                    item.hide_info()
+                else:
+                    item.show_info()
 
     def get_selected_keyframes(self):
         selected_keyframes = []
@@ -336,13 +347,13 @@ class KeyframeItem(QGraphicsPixmapItem):
 
         self.setPos(position)
 
-    def hoverEnterEvent(self, event):
+    """def hoverEnterEvent(self, event):
         self.show_info()  # Show hover info
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
         self.hide_info()  # Hide hover info
-        super().hoverLeaveEvent(event)
+        super().hoverLeaveEvent(event)"""
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
