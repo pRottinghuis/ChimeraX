@@ -337,11 +337,11 @@ class KeyframeItem(QGraphicsPixmapItem):
         self.setPos(position)
 
     def hoverEnterEvent(self, event):
-        self.hover_info.show()  # Show hover info
+        self.show_info()  # Show hover info
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
-        self.hover_info.hide()  # Hide hover info
+        self.hide_info()  # Hide hover info
         super().hoverLeaveEvent(event)
 
     def itemChange(self, change, value):
@@ -392,6 +392,12 @@ class KeyframeItem(QGraphicsPixmapItem):
     def trigger_for_edit(self):
         new_time = (float(self.timeline.get_time_for_pos(self.x() + self.boundingRect().width() / 2)))
         activate_trigger(KF_EDIT, (self.name, new_time))
+
+    def show_info(self):
+        self.hover_info.show()
+
+    def hide_info(self):
+        self.hover_info.hide()
 
     def set_position_from_time(self, time):
         new_x = self.timeline.get_pos_for_time(time) - self.boundingRect().width() / 2
