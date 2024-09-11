@@ -7,7 +7,7 @@ from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
-                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger, MGR_FRAME_PLAYED)
+                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger, MGR_FRAME_PLAYED, RECORD)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -65,6 +65,11 @@ class KeyframeEditorWidget(QWidget):
         self.fast_forward_button.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekForward))
         self.button_layout.addWidget(self.fast_forward_button)
         self.fast_forward_button.clicked.connect(self.fast_forward)
+
+        # Record button
+        self.record_button = QPushButton("Record")
+        self.button_layout.addWidget(self.record_button)
+        self.record_button.clicked.connect(lambda: activate_trigger(RECORD, None))
 
         # Add button
         self.add_button = QPushButton("Add")
