@@ -294,7 +294,7 @@ class KeyframeItem(QGraphicsPixmapItem):
 
     def __init__(self, name, pixmap, position, timeline: Timeline):
         super().__init__(pixmap)
-        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemIsSelectable)
         self.setAcceptHoverEvents(True)
         self.name = name
         # hold onto a reference to the timeline so that update each keyframe based on the timeline.
