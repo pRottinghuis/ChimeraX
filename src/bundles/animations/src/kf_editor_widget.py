@@ -1,6 +1,6 @@
 from Qt.QtWidgets import (QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene,
                           QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton,
-                          QSizePolicy,
+                          QSizePolicy, QLabel,
                           QHBoxLayout, QStyle)
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize, QTimer
 from Qt.QtGui import QPixmap, QPen
@@ -18,11 +18,24 @@ class KeyframeEditorWidget(QWidget):
         """
         super().__init__()
         self.layout = QVBoxLayout(self)
+
+        # Time label
+        self.time_label_layout = QHBoxLayout()
+        self.time_label = QLabel()
+        self.time_label_layout.addWidget(self.time_label)
+        self.layout.addLayout(self.time_label_layout)
+
+        # Keyframe editor graphics view widget
         self.kfe_view = KFEGraphicsView(self)
         self.kfe_scene = KeyframeEditorScene(length, keyframes)
         self.kfe_view.setScene(self.kfe_scene)
-
         self.layout.addWidget(self.kfe_view)
+
+        # Connect time label triggers. Must be done after the KeyframeEditor widget is created because depends on
+        # the keyframe editor scene.
+        self.update_time_label(0)
+        add_handler(MGR_PREVIEWED, lambda trigger_name, time: self.update_time_label(time))
+        add_handler(MGR_FRAME_PLAYED, lambda trigger_name, time: self.update_time_label(time))
 
         # Horizontal layout for navigation buttons
         self.button_layout = QHBoxLayout()
@@ -60,6 +73,9 @@ class KeyframeEditorWidget(QWidget):
         self.button_layout.addWidget(self.delete_button)
 
         self.layout.addLayout(self.button_layout)
+
+    def update_time_label(self, time):
+        self.time_label.setText(f"{format_time(time)} / {format_time(self.kfe_scene.timeline.get_time_length())}")
 
     def rewind(self):
         cursor = self.kfe_scene.get_cursor()
