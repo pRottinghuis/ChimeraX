@@ -206,7 +206,15 @@ class Animation(StateManager):
                 self.logger.status(f"Finished playing animation.")
                 self._try_end_recording()
 
-            activate_trigger(MGR_FRAME_PLAYED, frame_num / self.fps)
+            # The animation has exactly time * fps frames. That means there is either a 0:00 frame and not a
+            # frame for the last time stamp or vice versa. Since we index 0 based, when we play reverse we end on frame
+            # 0, get 0 / fps and the time emitted is 0 which is correct. When we play forwards and assume that frame 0
+            # is the first frame, we need to add 1 to the frame number to get the correct time for the end otherwise
+            # we get (length * fps - 1) / fps which is not the correct time. This causes a 5-second animation to end at
+            # something like 4.99 seconds. This approach does mean the first frame played is not 0:00 seconds but rather
+            # 1 / fps seconds. This is a tradeoff to ensure the end time is correct.
+            time = (frame_num + 1) / self.fps if not reverse else frame_num / self.fps
+            activate_trigger(MGR_FRAME_PLAYED, time)
 
         # Calculate how many frames need to be played between start_frame and the end of the animation. Take reverse
         # into account
