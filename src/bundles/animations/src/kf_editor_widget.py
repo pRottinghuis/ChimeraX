@@ -36,6 +36,9 @@ class KeyframeEditorWidget(QWidget):
         self.update_time_label(0)
         add_handler(MGR_PREVIEWED, lambda trigger_name, time: self.update_time_label(time))
         add_handler(MGR_FRAME_PLAYED, lambda trigger_name, time: self.update_time_label(time))
+        # This handler is needed for when the cursor is moved but there is no manager preview call. This happens if
+        # There are no keyframes in the animation.
+        add_handler(PREVIEW, lambda trigger_name, time: self.update_time_label(time))
 
         # Horizontal layout for navigation buttons
         self.button_layout = QHBoxLayout()
