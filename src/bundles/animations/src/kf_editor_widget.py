@@ -90,12 +90,14 @@ class KeyframeEditorWidget(QWidget):
         cursor = self.kfe_scene.get_cursor()
         cursor.set_pos_from_time(0)
         self.kfe_view.horizontalScrollBar().setValue(0)
+        self.kfe_scene.get_cursor().activate_preview_trigger()
 
     def fast_forward(self):
         cursor = self.kfe_scene.get_cursor()
         timeline_len = self.kfe_scene.timeline.get_time_length()
         cursor.set_pos_from_time(timeline_len)
         self.kfe_view.horizontalScrollBar().setValue(self.kfe_view.horizontalScrollBar().maximum())
+        self.kfe_scene.get_cursor().activate_preview_trigger()
 
     def delete_keyframes(self):
         keyframes = self.kfe_scene.get_selected_keyframes()
@@ -455,9 +457,11 @@ class TimelineCursor(QGraphicsLineItem):
         return self.timeline.get_time_for_pos(self.x())
 
     def mouseReleaseEvent(self, event):
-        new_time = round(float(self.timeline.get_time_for_pos(self.x())), 2)
-        activate_trigger(PREVIEW, new_time)
+        self.activate_preview_trigger()
         super().mouseReleaseEvent(event)
+
+    def activate_preview_trigger(self):
+        activate_trigger(PREVIEW, round(self.get_time(), 2))
 
 
 class TickMarkItem(QGraphicsLineItem):
