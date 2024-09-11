@@ -347,13 +347,14 @@ class KeyframeItem(QGraphicsPixmapItem):
 
         self.setPos(position)
 
-    """def hoverEnterEvent(self, event):
+    def hoverEnterEvent(self, event):
         self.show_info()  # Show hover info
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
-        self.hide_info()  # Hide hover info
-        super().hoverLeaveEvent(event)"""
+        if not self.isSelected():
+            self.hide_info()
+        super().hoverLeaveEvent(event)
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
