@@ -219,6 +219,13 @@ class KeyframeEditorScene(QGraphicsScene):
                 self.cursor.setPos(clicked_pos)
         super().mousePressEvent(event)
 
+    def mouseReleaseEvent(self, event, QGraphicsSceneMouseEvent=None):
+        if event.button() == Qt.LeftButton:
+            keyframes = self.get_selected_keyframes()
+            for keyframes in keyframes:
+                keyframes.trigger_for_edit()
+        super().mouseReleaseEvent(event)
+
     def get_selected_keyframes(self):
         selected_keyframes = []
         for item in self.selectedItems():
@@ -382,10 +389,9 @@ class KeyframeItem(QGraphicsPixmapItem):
                         new_x -= 1
         return new_x
 
-    def mouseReleaseEvent(self, event):
+    def trigger_for_edit(self):
         new_time = (float(self.timeline.get_time_for_pos(self.x() + self.boundingRect().width() / 2)))
         activate_trigger(KF_EDIT, (self.name, new_time))
-        super().mouseReleaseEvent(event)
 
     def set_position_from_time(self, time):
         new_x = self.timeline.get_pos_for_time(time) - self.boundingRect().width() / 2
