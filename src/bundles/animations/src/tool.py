@@ -1,8 +1,10 @@
 from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
-from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD, KF_DELETE
+from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD, KF_DELETE, RECORD
 from chimerax.core.commands import run
 from .kf_editor_widget import KeyframeEditorWidget
+from chimerax.ui.open_save import SaveDialog
+
 
 
 class AnimationsTool(ToolInstance):
@@ -34,6 +36,7 @@ class AnimationsTool(ToolInstance):
         add_handler(PLAY, lambda trigger_name, data: run(self.session, f"animations play start {data[0]} reverse {data[1]}"))
         add_handler(KF_ADD, lambda trigger_name, time: self.add_keyframe(time))
         add_handler(KF_DELETE, lambda trigger_name, kf_name: run(self.session, f"animations keyframe delete {kf_name}"))
+        add_handler(RECORD, lambda trigger_name, data: self.record())
 
         self.tool_window.manage("side")
 
@@ -53,6 +56,20 @@ class AnimationsTool(ToolInstance):
             id += 1
         kf_name = f"{base_name}{id}"
         run(self.session, f"animations keyframe add {kf_name} time {time}")
+
+    def record(self):
+        save_path = self.get_save_path()
+        if save_path is None:
+            return
+        run(self.session, f"animations record {save_path}")
+
+    def get_save_path(self):
+        save_dialog = SaveDialog(self.session, parent=self.tool_window.ui_area)
+        save_dialog.setNameFilter("Video Files (*.mp4 *.mov *.avi *.wmv)")
+        if save_dialog.exec():
+            file_path = save_dialog.selectedFiles()[0]
+            return file_path
+        return None
 
     def take_snapshot(self, session, flags):
         return {
