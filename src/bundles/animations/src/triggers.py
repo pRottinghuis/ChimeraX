@@ -34,6 +34,34 @@ KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, RECORD, STOP_PLAYING =
     "animations keyframe add", "animations keyframe delete", "animations keyframe edit", "animations length change",
     "animations preview", "animations play", "animations record", "animations stop playing")
 
+"""
+Non MGR_ prefix commands are triggered by external sources and are handled by the tool to make command calls to the
+animation manager.
+
+KF_ADD: Triggered when a keyframe needs to be added to the animation manager. Data is the time in seconds (int/float) 
+to add the keyframe at.
+
+KF_DELETE: Triggered when a keyframe needs to be deleted from the animation manager. Data is the name (str) of the 
+keyframe that needs to be deleted.
+
+KF_EDIT: Triggered when a keyframe needs to be edited in the animation manager. Data is a tuple (keyframe name, time)
+(str, int/float) of the keyframe that needs to be edited and the new time in seconds.
+
+LENGTH_CHANGE: Triggered when the length of the animation needs to be changed. Data is the new length of the 
+animation in seconds (int/float).
+
+PREVIEW: Triggered when the animation manager needs to preview a frame. Data is the time in seconds (int/float) to 
+preview
+
+PLAY: Triggered when the animation manager needs to play a frame. Data is a tuple (time, reverse) (int/float, bool).
+The time is in seconds for when to start playing and reverse is a boolean for if the animation should play in reverse.
+True for reverse, False for forward.
+
+RECORD: Triggered when the animation manager needs to record the animation. Data is None.
+
+STOP_PLAYING: Triggered when the animation manager needs to stop playing the animation. Data is None.
+"""
+
 _triggers = TriggerSet()
 
 for trigger in manager_triggers:
