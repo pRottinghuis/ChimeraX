@@ -162,7 +162,7 @@ class KeyframeEditorScene(QGraphicsScene):
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
         self.addItem(self.cursor)
-        self.keyframes = {}
+        self.keyframes = {}  # Dictionary of keyframe name to KeyframeItem
 
         for kf in keyframes:
             self.add_kf_item(kf)
