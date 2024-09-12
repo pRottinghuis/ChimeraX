@@ -30,9 +30,9 @@ frame that is being shown.
 """
 
 # Signals for if the animation manager needs to make an action
-KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, RECORD, STOP_PLAYING = external_triggers = (
+KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, RECORD, STOP_PLAYING, REMOVE_TIME = external_triggers = (
     "animations keyframe add", "animations keyframe delete", "animations keyframe edit", "animations length change",
-    "animations preview", "animations play", "animations record", "animations stop playing")
+    "animations preview", "animations play", "animations record", "animations stop playing", "animations remove time")
 
 """
 Non MGR_ prefix commands are triggered by external sources and are handled by the tool to make command calls to the
@@ -60,6 +60,9 @@ True for reverse, False for forward.
 RECORD: Triggered when the animation manager needs to record the animation. Data is None.
 
 STOP_PLAYING: Triggered when the animation manager needs to stop playing the animation. Data is None.
+
+REMOVE_TIME: Triggered when the animation manager needs to remove a time segment from the animation. Data is 
+(target time, time to remove) in seconds (int/float, int/float).
 """
 
 _triggers = TriggerSet()
