@@ -17,6 +17,9 @@ def register_command(command_name, logger):
     elif command_name == "animations play":
         func = play
         desc = play_desc
+    elif command_name == "animations stop":
+        func = stop
+        desc = stop_desc
     elif command_name == "animations preview":
         func = preview
         desc = preview_desc
@@ -121,6 +124,20 @@ play_desc = CmdDesc(
         ("reverse", BoolArg)
     ],
     synopsis="Play the animation."
+)
+
+
+def stop(session):
+    """
+    Pause the animation in the StateManager.
+    :param session: The current session.
+    """
+    animation_mgr: Animation = session.get_state_manager("animations")
+    animation_mgr.stop_playing()
+
+
+stop_desc = CmdDesc(
+    synopsis="Stop the animation playing."
 )
 
 
