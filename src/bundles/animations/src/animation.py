@@ -89,7 +89,7 @@ class Animation(StateManager):
             return
         kf: Keyframe = self.get_keyframe(keyframe_name)
         if kf.get_time() == time:
-            self.logger.info(f"{keyframe_name} is already at time {time}.")
+            self.logger.warning(f"{keyframe_name} is already at time {time}.")
             return
         # Extend the length of the animation if needed
         if time > self.length:

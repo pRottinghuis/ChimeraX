@@ -57,28 +57,28 @@ def keyframe(session, action: str, keyframe_name: str, time: int | float | None 
 
     if action == "add":
         if time is not None and not isinstance(time, (int, float)):
-            print("Time must be an integer or float")
+            session.logger.warning("Time must be an integer or float")
             return
         if animation_mgr.keyframe_exists(keyframe_name):
-            print(f"Keyframe {keyframe_name} already exists")
+            session.logger.warning(f"Keyframe {keyframe_name} already exists")
             return
         run(session, f"scenes scene {keyframe_name}", log=False)
         animation_mgr.add_keyframe(keyframe_name, time)
     elif action == "edit":
         if not animation_mgr.keyframe_exists(keyframe_name):
-            print(f"Keyframe {keyframe_name} does not exist")
+            session.logger.warning(f"Keyframe {keyframe_name} does not exist")
             return
         if not isinstance(time, (int, float)):
-            print("Time must be an integer or float")
+            session.logger.warning("Time must be an integer or float")
             return
         animation_mgr.edit_keyframe_time(keyframe_name, time)
     elif action == "delete":
         if not animation_mgr.keyframe_exists(keyframe_name):
-            print(f"Keyframe {keyframe_name} does not exist")
+            session.logger.warning(f"Keyframe {keyframe_name} does not exist")
             return
         animation_mgr.delete_keyframe(keyframe_name)
     else:
-        print(f"Action {action} not recognized. Options are add, edit, delete.")
+        session.logger.warning(f"Action {action} not recognized. Options are add, edit, delete.")
 
 
 keyframe_desc = CmdDesc(
@@ -116,7 +116,7 @@ def play(session, start_time=0, reverse=False):
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
-        print("Need at least 1 keyframes to play the animation.")
+        session.logger.warning("Need at least 1 keyframes to play the animation.")
         return
     animation_mgr.play(start_time, reverse)
 
@@ -152,13 +152,13 @@ def preview(session, time: int | float):
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if not isinstance(time, (int, float)):
-        print("Time must be an integer or float")
+        session.logger.warning("Time must be an integer or float")
         return
     if animation_mgr.get_num_keyframes() < 1:
-        print("Need at least 1 keyframes to preview the animation.")
+        session.logger.warning("Need at least 1 keyframes to preview the animation.")
         return
     if not animation_mgr.time_in_range(time):
-        print(f"Time must be between 0 and {animation_mgr.get_time_length()}")
+        session.logger.warning(f"Time must be between 0 and {animation_mgr.get_time_length()}")
         return
     animation_mgr.preview(time)
 
@@ -197,7 +197,7 @@ def record(session, r_directory=None, r_pattern=None, r_format=None,
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
-        print("Need at least 1 keyframes to record the animation.")
+        session.logger.warning("Need at least 1 keyframes to record the animation.")
         return
 
     record_params = {
