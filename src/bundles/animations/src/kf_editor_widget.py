@@ -7,7 +7,7 @@ from Qt.QtGui import QPixmap, QPen
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
-                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger, MGR_FRAME_PLAYED, RECORD)
+                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger, MGR_FRAME_PLAYED, RECORD, STOP_PLAYING)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -59,6 +59,7 @@ class KeyframeEditorWidget(QWidget):
         self.pause_button = QPushButton()
         self.pause_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
         self.button_layout.addWidget(self.pause_button)
+        self.pause_button.clicked.connect(lambda: activate_trigger(STOP_PLAYING, None))
 
         # Fast forward button
         self.fast_forward_button = QPushButton()

@@ -1,6 +1,6 @@
 from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
-from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD, KF_DELETE, RECORD
+from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD, KF_DELETE, RECORD, STOP_PLAYING
 from chimerax.core.commands import run
 from .kf_editor_widget import KeyframeEditorWidget
 from chimerax.ui.open_save import SaveDialog
@@ -37,6 +37,7 @@ class AnimationsTool(ToolInstance):
         add_handler(KF_ADD, lambda trigger_name, time: self.add_keyframe(time))
         add_handler(KF_DELETE, lambda trigger_name, kf_name: run(self.session, f"animations keyframe delete {kf_name}"))
         add_handler(RECORD, lambda trigger_name, data: self.record())
+        add_handler(STOP_PLAYING, lambda trigger_name, data: run(self.session, "animations stop"))
 
         self.tool_window.manage("side")
 
