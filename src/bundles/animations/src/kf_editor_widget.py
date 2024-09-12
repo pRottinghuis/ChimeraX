@@ -7,7 +7,8 @@ from Qt.QtGui import QPixmap, QPen, QTransform
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
-                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger, MGR_FRAME_PLAYED, RECORD, STOP_PLAYING)
+                       KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger,
+                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -84,6 +85,34 @@ class KeyframeEditorWidget(QWidget):
         self.delete_button.clicked.connect(lambda: self.delete_keyframes())
 
         self.layout.addLayout(self.button_layout)
+
+        # Layout for all the time adjustment buttons
+        self.time_buttons_layout = QHBoxLayout()
+
+        remove_large = -5
+        remove_medium = -2
+        remove_small = -0.5
+
+        insert_small = 0.5
+        insert_medium = 2
+        insert_large = 5
+
+        # Remove buttons
+        for adjustment in [remove_large, remove_medium, remove_small, insert_small, insert_medium, insert_large]:
+            self.add_time_adjustment_button(adjustment)
+
+        self.layout.addLayout(self.time_buttons_layout)
+
+    def add_time_adjustment_button(self, d_time):
+        button = QPushButton(f"{d_time}s")
+        if d_time < 0:
+            trigger_activation = lambda: activate_trigger(
+                REMOVE_TIME, (self.kfe_scene.get_cursor().get_time(), d_time * -1))
+        else:
+            trigger_activation = lambda: activate_trigger(
+                INSERT_TIME, (self.kfe_scene.get_cursor().get_time(), d_time))
+        button.clicked.connect(trigger_activation)
+        self.time_buttons_layout.addWidget(button)
 
     def update_time_label(self, time):
         self.time_label.setText(f"{format_time(time)} / {format_time(self.kfe_scene.timeline.get_time_length())}")
@@ -336,7 +365,8 @@ class KeyframeItem(QGraphicsPixmapItem):
 
     def __init__(self, name, pixmap, position, timeline: Timeline):
         super().__init__(pixmap)
-        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemIsSelectable)
+        self.setFlags(
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemIsSelectable)
         self.setAcceptHoverEvents(True)
         self.name = name
         # hold onto a reference to the timeline so that update each keyframe based on the timeline.
