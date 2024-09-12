@@ -254,8 +254,9 @@ class KeyframeEditorScene(QGraphicsScene):
         self.removeItem(keyframe_item)
 
     def update_scene_size(self):
-        scene_width = self.timeline.get_pix_length() + 20  # Slightly wider than the timeline
-        self.setSceneRect(0, 0, scene_width, self.height())
+        margin = 10  # Margin in pixels on each side
+        scene_width = self.timeline.get_pix_length() + 2 * margin  # Total width including margins
+        self.setSceneRect(-margin, 0, scene_width, self.height())
 
     def set_timeline_length(self, length):
         self.timeline.set_time_length(length)
