@@ -3,7 +3,7 @@ from Qt.QtWidgets import (QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGr
                           QSizePolicy, QLabel,
                           QHBoxLayout, QStyle)
 from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize, QTimer
-from Qt.QtGui import QPixmap, QPen
+from Qt.QtGui import QPixmap, QPen, QTransform
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
@@ -225,6 +225,8 @@ class KeyframeEditorScene(QGraphicsScene):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             clicked_pos = event.scenePos()
+            if not isinstance(self.itemAt(clicked_pos, QTransform()), KeyframeItem):
+                self.clearSelection()
             if self.timeline.contains(clicked_pos):
                 self.cursor.setPos(clicked_pos)
         super().mousePressEvent(event)
