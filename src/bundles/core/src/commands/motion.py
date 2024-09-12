@@ -54,7 +54,9 @@ class CallForNFrames:
     def done(self):
         s = self.session
         s.triggers.remove_handler(self.handler)
-        getattr(s, self.Attribute).remove(self)
+        m_progress_attr = getattr(s, self.Attribute)
+        if self in m_progress_attr:
+            m_progress_attr.remove(self)
 
 
 def motion_in_progress(session):
