@@ -1,7 +1,7 @@
 from chimerax.core.tools import ToolInstance
 from Qt.QtWidgets import QVBoxLayout
 from .triggers import (add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD, KF_DELETE, RECORD, STOP_PLAYING, INSERT_TIME,
-                       REMOVE_TIME)
+                       REMOVE_TIME, remove_handler)
 from chimerax.core.commands import run
 from .kf_editor_widget import KeyframeEditorWidget
 from chimerax.ui.open_save import SaveDialog
@@ -17,6 +17,8 @@ class AnimationsTool(ToolInstance):
 
         super().__init__(session, tool_name)
 
+        self.handlers = []
+
         # Set name displayed on title bar (defaults to tool_name)
         # Must be after the superclass init, which would override it.
         self.display_name = "Animations"
@@ -31,15 +33,15 @@ class AnimationsTool(ToolInstance):
         self.build_ui()
 
         # Register handlers for the triggers
-        add_handler(PREVIEW, lambda trigger_name, time: run(self.session, f"animations preview {time}"))
-        add_handler(KF_EDIT, lambda trigger_name, data: run(self.session, f"animations keyframe edit {data[0]} time {data[1]}"))
-        add_handler(PLAY, lambda trigger_name, data: run(self.session, f"animations play start {data[0]} reverse {data[1]}"))
-        add_handler(KF_ADD, lambda trigger_name, time: self.add_keyframe(time))
-        add_handler(KF_DELETE, lambda trigger_name, kf_name: run(self.session, f"animations keyframe delete {kf_name}"))
-        add_handler(RECORD, lambda trigger_name, data: self.record())
-        add_handler(STOP_PLAYING, lambda trigger_name, data: run(self.session, "animations stop"))
-        add_handler(INSERT_TIME, lambda trigger_name, data: run(self.session, f"animations insertTime {data[0]} {data[1]}"))
-        add_handler(REMOVE_TIME, lambda trigger_name, data: run(self.session, f"animations removeTime {data[0]} {data[1]}"))
+        self.handlers.append(add_handler(PREVIEW, lambda trigger_name, time: run(self.session, f"animations preview {time}")))
+        self.handlers.append(add_handler(KF_EDIT, lambda trigger_name, data: run(self.session, f"animations keyframe edit {data[0]} time {data[1]}")))
+        self.handlers.append(add_handler(PLAY, lambda trigger_name, data: run(self.session, f"animations play start {data[0]} reverse {data[1]}")))
+        self.handlers.append(add_handler(KF_ADD, lambda trigger_name, time: self.add_keyframe(time)))
+        self.handlers.append(add_handler(KF_DELETE, lambda trigger_name, kf_name: run(self.session, f"animations keyframe delete {kf_name}")))
+        self.handlers.append(add_handler(RECORD, lambda trigger_name, data: self.record()))
+        self.handlers.append(add_handler(STOP_PLAYING, lambda trigger_name, data: run(self.session, "animations stop")))
+        self.handlers.append(add_handler(INSERT_TIME, lambda trigger_name, data: run(self.session, f"animations insertTime {data[0]} {data[1]}")))
+        self.handlers.append(add_handler(REMOVE_TIME, lambda trigger_name, data: run(self.session, f"animations removeTime {data[0]} {data[1]}")))
 
         self.tool_window.manage("side")
 
@@ -75,6 +77,8 @@ class AnimationsTool(ToolInstance):
         return None
 
     def delete(self):
+        for handler in self.handlers:
+            remove_handler(handler)
         if self.kf_editor_widget is not None:
             self.kf_editor_widget.remove_handlers()
         super().delete()
