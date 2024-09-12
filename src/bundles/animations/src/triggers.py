@@ -80,5 +80,10 @@ def activate_trigger(trigger_name: str, data: Optional[Any] = None, absent_okay:
     _triggers.activate_trigger(trigger_name, data)
 
 
-def add_handler(trigger_name: str, func: Callable) -> None:
-    _triggers.add_handler(trigger_name, func)
+def add_handler(trigger_name: str, func: Callable):
+    # Returns _TriggerHandler instance
+    return _triggers.add_handler(trigger_name, func)
+
+
+def remove_handler(handler) -> None:
+    _triggers.remove_handler(handler)
