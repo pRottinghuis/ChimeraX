@@ -494,7 +494,6 @@ class TimelineCursor(QGraphicsLineItem):
                 rtn_point = QPointF(self.timeline.x(), self.y())
             elif value.x() > self.timeline.x() + self.timeline.get_pix_length():
                 rtn_point = QPointF(self.timeline.x() + self.timeline.get_pix_length(), self.y())
-            activate_trigger(PREVIEW, round(self.get_time(), 2))
             return rtn_point
 
         return super().itemChange(change, value)
@@ -509,6 +508,10 @@ class TimelineCursor(QGraphicsLineItem):
     def mouseReleaseEvent(self, event):
         self.activate_preview_trigger()
         super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event, QGraphicsSceneMouseEvent=None):
+        self.activate_preview_trigger()
+        super().mouseMoveEvent(event)
 
     def activate_preview_trigger(self):
         activate_trigger(PREVIEW, round(self.get_time(), 2))
