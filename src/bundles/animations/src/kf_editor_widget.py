@@ -157,7 +157,7 @@ class KFEGraphicsView(QGraphicsView):
         # Get the current scene rectangle
         scene_rect = self.scene().sceneRect()
         width = min(700, int(scene_rect.width()))
-        height = int(scene_rect.height() + 120)
+        height = int(scene_rect.height() + 400)
         return QSize(width, height)
 
     def auto_scroll(self):
