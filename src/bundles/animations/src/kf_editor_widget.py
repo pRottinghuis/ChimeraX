@@ -262,6 +262,7 @@ class KeyframeEditorScene(QGraphicsScene):
         self.timeline.set_time_length(length)
         if self.cursor.x() > self.timeline.x() + self.timeline.get_pix_length():
             self.cursor.setX(self.timeline.x() + self.timeline.get_pix_length())
+        self.cursor.activate_preview_trigger()
         self.update_scene_size()
 
     def mousePressEvent(self, event):
