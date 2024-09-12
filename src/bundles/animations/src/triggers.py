@@ -30,9 +30,11 @@ frame that is being shown.
 """
 
 # Signals for if the animation manager needs to make an action
-KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, RECORD, STOP_PLAYING, REMOVE_TIME = external_triggers = (
+(KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, RECORD, STOP_PLAYING, REMOVE_TIME,
+ INSERT_TIME) = external_triggers = (
     "animations keyframe add", "animations keyframe delete", "animations keyframe edit", "animations length change",
-    "animations preview", "animations play", "animations record", "animations stop playing", "animations remove time")
+    "animations preview", "animations play", "animations record", "animations stop playing", "animations remove time",
+    "animations insert time")
 
 """
 Non MGR_ prefix commands are triggered by external sources and are handled by the tool to make command calls to the
