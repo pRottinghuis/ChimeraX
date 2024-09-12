@@ -210,7 +210,7 @@ class KeyframeEditorScene(QGraphicsScene):
         self.handlers.append(add_handler(MGR_KF_ADDED, lambda trigger_name, data: self.add_kf_item(data)))
         self.handlers.append(add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data)))
         self.handlers.append(add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data)))
-        self.handlers.append(add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.set_timeline_length(data)))
+        self.handlers.append(add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.animation_len_changed(data)))
         self.handlers.append(add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
         self.handlers.append(add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
 
@@ -258,8 +258,10 @@ class KeyframeEditorScene(QGraphicsScene):
         scene_width = self.timeline.get_pix_length() + 2 * margin  # Total width including margins
         self.setSceneRect(-margin, 0, scene_width, self.height())
 
-    def set_timeline_length(self, length):
+    def animation_len_changed(self, length):
         self.timeline.set_time_length(length)
+        if self.cursor.x() > self.timeline.x() + self.timeline.get_pix_length():
+            self.cursor.setX(self.timeline.x() + self.timeline.get_pix_length())
         self.update_scene_size()
 
     def mousePressEvent(self, event):
