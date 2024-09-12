@@ -51,6 +51,8 @@ class Animation(StateManager):
                     activate_trigger(MGR_KF_ADDED, kf)
             self.set_length(animation_data['length'])
 
+        self._call_for_n_frames = None
+
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
         """
         Add a keyframe to the animation. The keyframe will be created at the time specified.
@@ -222,7 +224,7 @@ class Animation(StateManager):
             num_frames_to_play = start_frame + 1  # from start_frame to 0 (inclusive)
         else:
             num_frames_to_play = len(self._lerp_steps) - start_frame  # from start_frame to the end
-        CallForNFrames(frame_cb, num_frames_to_play, self.session)
+        self._call_for_n_frames = CallForNFrames(frame_cb, num_frames_to_play, self.session)
 
     def record(self, record_data=None, encode_data=None, reverse=False):
         """
@@ -244,6 +246,15 @@ class Animation(StateManager):
         movie_record(self.session, **self._record_data)
         self._is_recording = True
         self.play(reverse)
+
+    def stop_playing(self):
+        if self._is_recording:
+            return
+        if self._call_for_n_frames is not None:
+            self._call_for_n_frames.done()
+            self._is_playing = False
+            self._call_for_n_frames = None
+            self.logger.status(f"Stopped playing animation.")
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
