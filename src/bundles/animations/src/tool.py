@@ -1,10 +1,9 @@
 from chimerax.core.tools import ToolInstance
-from Qt.QtWidgets import QVBoxLayout, QStyle, QPushButton
+from Qt.QtWidgets import QVBoxLayout
 from .triggers import add_handler, KF_EDIT, PREVIEW, PLAY, KF_ADD, KF_DELETE, RECORD, STOP_PLAYING
 from chimerax.core.commands import run
 from .kf_editor_widget import KeyframeEditorWidget
 from chimerax.ui.open_save import SaveDialog
-
 
 
 class AnimationsTool(ToolInstance):
