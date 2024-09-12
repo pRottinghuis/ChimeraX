@@ -119,12 +119,14 @@ class KeyframeEditorWidget(QWidget):
         self.time_label.setText(f"{format_time(time)} / {format_time(self.kfe_scene.timeline.get_time_length())}")
 
     def rewind(self):
+        activate_trigger(STOP_PLAYING, None)
         cursor = self.kfe_scene.get_cursor()
         cursor.set_pos_from_time(0)
         self.kfe_view.horizontalScrollBar().setValue(0)
         self.kfe_scene.get_cursor().activate_preview_trigger()
 
     def fast_forward(self):
+        activate_trigger(STOP_PLAYING, None)
         cursor = self.kfe_scene.get_cursor()
         timeline_len = self.kfe_scene.timeline.get_time_length()
         cursor.set_pos_from_time(timeline_len)
