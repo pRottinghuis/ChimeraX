@@ -81,9 +81,5 @@ class AnimationsTool(ToolInstance):
 
     @classmethod
     def restore_snapshot(class_obj, session, data):
-        # Instead of using a fixed string when calling the constructor below, we could
-        # have saved the tool name during take_snapshot() (from self.tool_name, inherited
-        # from ToolInstance) and used that saved tool name.  There are pros and cons to
-        # both approaches.
         inst = class_obj(session, "Animations")
         return inst
