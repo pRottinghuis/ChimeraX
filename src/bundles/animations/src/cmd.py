@@ -32,6 +32,9 @@ def register_command(command_name, logger):
     elif command_name == "animations insertTime":
         func = insert_time
         desc = insert_time_desc
+    elif command_name == "animations removeTime":
+        func = remove_time
+        desc = remove_time_desc
     elif command_name == "animations clear":
         func = clear
         desc = clear_desc
@@ -263,6 +266,23 @@ insert_time_desc = CmdDesc(
         ("time", FloatArg)
     ],
     synopsis="Insert a segment of time at a target point on the timeline. Shift keyframes accordingly."
+)
+
+
+def remove_time(session, start_time: int | float, end_time: int | float):
+    """
+    Remove a segment of time from the timeline. Shift keyframes accordingly.
+    """
+    animation_mgr: Animation = session.get_state_manager("animations")
+    animation_mgr.remove_time(start_time, end_time)
+
+
+remove_time_desc = CmdDesc(
+    required=[
+        ("start_time", FloatArg),
+        ("end_time", FloatArg)
+    ],
+    synopsis="Remove a segment of time from the timeline. Shift keyframes accordingly."
 )
 
 

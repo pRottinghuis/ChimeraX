@@ -65,6 +65,8 @@ will be displayed without the ChimeraX- prefix.
       Remove all keyframes from the animation manager. </ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: animations insertTime :: General ::
       Insert a segment of time at a target point on the timeline. Shift keyframes accordingly. </ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: animations removeTime :: General ::
+      Remove a segment of time from the timeline. Shift keyframes accordingly. </ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
