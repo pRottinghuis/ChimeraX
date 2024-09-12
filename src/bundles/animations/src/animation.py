@@ -354,6 +354,9 @@ class Animation(StateManager):
         if length > self.MAX_LENGTH:
             self.logger.warning(f"Length must be less than {self.MAX_LENGTH} seconds")
             return
+        if length * self.fps < 1:
+            self.logger.warning(f"Length {length} is less than 1 frame long at {self.get_frame_rate()} fps.")
+            return
 
         self.length = length
         activate_trigger(MGR_LENGTH_CHANGED, self.length)
