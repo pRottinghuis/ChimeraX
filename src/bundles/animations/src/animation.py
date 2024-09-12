@@ -164,14 +164,19 @@ class Animation(StateManager):
         if amount_for_removal < 0:
             self.logger.warning(f"Can't remove negative time.")
             return
-        if amount_for_removal > self.get_time_length():
+        if amount_for_removal >= self.get_time_length():
             self.logger.warning(f"Can't remove {amount_for_removal} seconds because it would make the animation length "
-                                f"negative.")
+                                f"<= 0.")
+            return
+        frames_after_time_change = (self.get_time_length() - amount_for_removal) * self.get_frame_rate()
+        if frames_after_time_change < 1:
+            self.logger.warning(f"Can't remove {amount_for_removal} seconds because it would make the animation less "
+                                f"than 1 frame long at {self.get_frame_rate()} fps.")
             return
 
         for kf in self.keyframes:
             if kf.get_time() > target_time:
-                if target_time + amount_for_removal >= kf.get_time():
+                if target_time + amount_for_removal > kf.get_time():
                     self.logger.warning(f"Can't remove {amount_for_removal} because blocked by keyframe at "
                                         f"{format_time(kf.get_time())}.")
                     return
