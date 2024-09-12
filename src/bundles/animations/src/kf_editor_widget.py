@@ -53,7 +53,8 @@ class KeyframeEditorWidget(QWidget):
         self.play_button = QPushButton()
         self.play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self.button_layout.addWidget(self.play_button)
-        self.play_button.clicked.connect(lambda: activate_trigger(PLAY, (self.kfe_scene.get_cursor().get_time(), False)))
+        self.play_button.clicked.connect(
+            lambda: activate_trigger(PLAY, (self.kfe_scene.get_cursor().get_time(), False)))
 
         # Pause button
         self.pause_button = QPushButton()
