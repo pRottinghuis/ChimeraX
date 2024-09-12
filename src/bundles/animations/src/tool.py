@@ -47,8 +47,8 @@ class AnimationsTool(ToolInstance):
         main_vbox_layout = QVBoxLayout()
 
         # Keyframe editor graphics view widget.
-        kf_editor_widget = KeyframeEditorWidget(self.animation_mgr.get_time_length(), self.animation_mgr.get_keyframes())
-        main_vbox_layout.addWidget(kf_editor_widget)
+        self.kf_editor_widget = KeyframeEditorWidget(self.animation_mgr.get_time_length(), self.animation_mgr.get_keyframes())
+        main_vbox_layout.addWidget(self.kf_editor_widget)
 
         self.tool_window.ui_area.setLayout(main_vbox_layout)
 
@@ -73,6 +73,11 @@ class AnimationsTool(ToolInstance):
             file_path = save_dialog.selectedFiles()[0]
             return file_path
         return None
+
+    def delete(self):
+        if self.kf_editor_widget is not None:
+            self.kf_editor_widget.remove_handlers()
+        super().delete()
 
     def take_snapshot(self, session, flags):
         return {

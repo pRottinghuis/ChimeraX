@@ -8,7 +8,7 @@ from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
                        KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger,
-                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME)
+                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -19,6 +19,7 @@ class KeyframeEditorWidget(QWidget):
         """
         super().__init__()
         self.layout = QVBoxLayout(self)
+        self.handlers = []
 
         # Time label
         self.time_label_layout = QHBoxLayout()
@@ -35,11 +36,11 @@ class KeyframeEditorWidget(QWidget):
         # Connect time label triggers. Must be done after the KeyframeEditor widget is created because depends on
         # the keyframe editor scene.
         self.update_time_label(0)
-        add_handler(MGR_PREVIEWED, lambda trigger_name, time: self.update_time_label(time))
-        add_handler(MGR_FRAME_PLAYED, lambda trigger_name, time: self.update_time_label(time))
+        self.handlers.append(add_handler(MGR_PREVIEWED, lambda trigger_name, time: self.update_time_label(time)))
+        self.handlers.append(add_handler(MGR_FRAME_PLAYED, lambda trigger_name, time: self.update_time_label(time)))
         # This handler is needed for when the cursor is moved but there is no manager preview call. This happens if
         # There are no keyframes in the animation.
-        add_handler(PREVIEW, lambda trigger_name, time: self.update_time_label(time))
+        self.handlers.append(add_handler(PREVIEW, lambda trigger_name, time: self.update_time_label(time)))
 
         # Horizontal layout for navigation buttons
         self.button_layout = QHBoxLayout()
@@ -135,6 +136,11 @@ class KeyframeEditorWidget(QWidget):
         for keyframe in keyframes:
             activate_trigger(KF_DELETE, keyframe.get_name())
 
+    def remove_handlers(self):
+        for handler in self.handlers:
+            remove_handler(handler)
+        self.kfe_scene.remove_handlers()
+
 
 class KFEGraphicsView(QGraphicsView):
     def __init__(self, scene):
@@ -188,6 +194,7 @@ class KFEGraphicsView(QGraphicsView):
 class KeyframeEditorScene(QGraphicsScene):
     def __init__(self, length, keyframes):
         super().__init__()
+        self.handlers = []
         self.timeline = Timeline(time_length=length)
         self.addItem(self.timeline)
         self.cursor = TimelineCursor(QPointF(0, 0), 70, self.timeline)
@@ -198,12 +205,12 @@ class KeyframeEditorScene(QGraphicsScene):
             self.add_kf_item(kf)
 
         # Connect triggers from the animation manager in the session to the keyframe editor
-        add_handler(MGR_KF_ADDED, lambda trigger_name, data: self.add_kf_item(data))
-        add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data))
-        add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data))
-        add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.set_timeline_length(data))
-        add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
-        add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data))
+        self.handlers.append(add_handler(MGR_KF_ADDED, lambda trigger_name, data: self.add_kf_item(data)))
+        self.handlers.append(add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data)))
+        self.handlers.append(add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data)))
+        self.handlers.append(add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.set_timeline_length(data)))
+        self.handlers.append(add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
+        self.handlers.append(add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
 
         self.selectionChanged.connect(self.on_selection_changed)
 
@@ -276,6 +283,10 @@ class KeyframeEditorScene(QGraphicsScene):
                     item.hide_info()
                 else:
                     item.show_info()
+
+    def remove_handlers(self):
+        for handler in self.handlers:
+            remove_handler(handler)
 
     def get_selected_keyframes(self):
         selected_keyframes = []
