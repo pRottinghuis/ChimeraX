@@ -151,6 +151,40 @@ class Animation(StateManager):
 
         self.logger.info(f"Inserted {amount_for_insertion} seconds at time {target_time}")
 
+    def remove_time(self, target_time, amount_for_removal):
+        """
+        Remove time from the animation. All keyframes after the target time will be moved closer to the target time.
+        """
+
+        if not self.validate_time(target_time):
+            return
+        if not isinstance(amount_for_removal, (int, float)):
+            self.logger.warning(f"Amount for removal must be an integer or float.")
+            return
+        if amount_for_removal < 0:
+            self.logger.warning(f"Can't remove negative time.")
+            return
+        if amount_for_removal > self.get_time_length():
+            self.logger.warning(f"Can't remove {amount_for_removal} seconds because it would make the animation length "
+                                f"negative.")
+            return
+
+        for kf in self.keyframes:
+            if kf.get_time() > target_time:
+                if target_time + amount_for_removal >= kf.get_time():
+                    self.logger.warning(f"Can't remove {amount_for_removal} because blocked by keyframe at "
+                                        f"{format_time(kf.get_time())}.")
+                    return
+
+        # Move all keyframes after the target time by the amount for removal.
+        for kf in self.keyframes:
+            if kf.get_time() > target_time:
+                kf.set_time(kf.get_time() - amount_for_removal)
+                activate_trigger(MGR_KF_EDITED, kf)
+
+        self.set_length(self.length - amount_for_removal)
+        self.logger.info(f"Removed {amount_for_removal} seconds at time {target_time}")
+
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
         keyframe_list = []
