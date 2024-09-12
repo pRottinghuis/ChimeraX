@@ -443,11 +443,14 @@ class TimelineCursor(QGraphicsLineItem):
             # Called before the position has changed.
 
             # Clamp the cursor to the timeline
+            rtn_point = QPointF(value.x(), self.y())
             if value.x() < self.timeline.x():
-                return QPointF(self.timeline.x(), self.y())
+                rtn_point = QPointF(self.timeline.x(), self.y())
             elif value.x() > self.timeline.x() + self.timeline.get_pix_length():
-                return QPointF(self.timeline.x() + self.timeline.get_pix_length(), self.y())
-            return QPointF(value.x(), self.y())
+                rtn_point = QPointF(self.timeline.x() + self.timeline.get_pix_length(), self.y())
+            activate_trigger(PREVIEW, round(self.get_time(), 2))
+            return rtn_point
+
         return super().itemChange(change, value)
 
     def set_pos_from_time(self, time):
