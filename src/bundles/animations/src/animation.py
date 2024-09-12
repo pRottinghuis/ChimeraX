@@ -180,6 +180,9 @@ class Animation(StateManager):
         self.logger.info(f"Previewing animation at time {format_time(time)}")
 
     def play(self, start_time=0, reverse=False):
+        if self._is_playing:
+            return
+
         if start_time < 0 or start_time > self.length:
             self.logger.warning(f"Start time must be between 0 and {self.length}")
             return
