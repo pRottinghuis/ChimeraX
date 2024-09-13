@@ -31,10 +31,10 @@ frame that is being shown.
 
 # Signals for if the animation manager needs to make an action
 (KF_ADD, KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, RECORD, STOP_PLAYING, REMOVE_TIME,
- INSERT_TIME) = external_triggers = (
+ INSERT_TIME, STOP_RECORDING) = external_triggers = (
     "animations keyframe add", "animations keyframe delete", "animations keyframe edit", "animations length change",
     "animations preview", "animations play", "animations record", "animations stop playing", "animations remove time",
-    "animations insert time")
+    "animations insert time", "animations stop recording")
 
 """
 Non MGR_ prefix commands are triggered by external sources and are handled by the tool to make command calls to the
@@ -65,6 +65,8 @@ STOP_PLAYING: Triggered when the animation manager needs to stop playing the ani
 
 REMOVE_TIME: Triggered when the animation manager needs to remove a time segment from the animation. Data is 
 (target time, time to remove) in seconds (int/float, int/float).
+
+STOP_RECORDING: Triggered when the animation manager needs to stop recording the animation. Data is None.
 """
 
 _triggers = TriggerSet()
