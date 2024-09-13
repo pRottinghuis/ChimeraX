@@ -285,7 +285,9 @@ class Animation(StateManager):
         self._encode_data['framerate'] = self.fps
         # Make sure the animation interpolation steps are generated before we start recording
         self._try_frame_refresh()
-        run(self.session, "movie abort", log=False)
+        # Stop a movie if one is already recording
+        if hasattr(self.session, 'movie') and self.session.movie is not None:
+            run(self.session, "movie stop", log=False)
         from chimerax.movie.moviecmd import movie_record
         # If we want to ever show commands in the log this needs to be converted
         movie_record(self.session, **self._record_data)
