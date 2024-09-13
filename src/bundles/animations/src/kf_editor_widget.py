@@ -8,7 +8,7 @@ from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
                        KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger,
-                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler, STOP_RECORDING)
+                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler, STOP_RECORDING, MGR_RECORDING_STOP, MGR_RECORDING_START)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -74,7 +74,9 @@ class KeyframeEditorWidget(QWidget):
         self.record_button = QPushButton("Record")
         self.record_button.setCheckable(True)
         self.button_layout.addWidget(self.record_button)
-        self.record_button.toggled.connect(self.recording_toggle)
+        self.record_button.clicked.connect(self.recording_toggle)
+        self.handlers.append(add_handler(MGR_RECORDING_START, lambda trigger_name, data: self.record_button.setChecked(True)))
+        self.handlers.append(add_handler(MGR_RECORDING_STOP, lambda trigger_name, data: self.record_button.setChecked(False)))
 
         # Add button
         self.add_button = QPushButton("Add")
@@ -139,13 +141,20 @@ class KeyframeEditorWidget(QWidget):
         for keyframe in keyframes:
             activate_trigger(KF_DELETE, keyframe.get_name())
 
-    def recording_toggle(self, checked):
+    def recording_toggle(self):
         """
-        param checked: True if the record button is activated, False if it was activated and is now deactivated
+        Recording toggle is called when the record button is clicked.
         """
-        if checked:
+        if self.record_button.isChecked():
+            # Clicking on the button flips the checked state automatically. We don't want automatic because we only
+            # want it checked if the animation has actually started recording. It is important that this reset happens
+            # before we trigger a start or stop recording because the handlers for those triggers will set the checked
+            # state properly and that code is run as soon as the trigger is activated.
+            self.record_button.setChecked(False)
             activate_trigger(RECORD, None)
         else:
+            # Same reset situation here as above
+            self.record_button.setChecked(False)
             activate_trigger(STOP_RECORDING, None)
 
     def remove_handlers(self):
