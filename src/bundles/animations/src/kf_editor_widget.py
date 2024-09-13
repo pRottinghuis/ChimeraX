@@ -148,8 +148,9 @@ class KeyframeEditorWidget(QWidget):
         if self.record_button.isChecked():
             # Clicking on the button flips the checked state automatically. We don't want automatic because we only
             # want it checked if the animation has actually started recording. It is important that this reset happens
-            # before we trigger a start or stop recording because the handlers for those triggers will set the checked
-            # state properly and that code is run as soon as the trigger is activated.
+            # before we trigger a start or stop recording because the handlers for the managers start stop recording
+            # will set the checked state properly and that code is run as soon as the trigger is activated. If the
+            # manager start stop doesn't get called we need to make sure that our button is set to unchecked.
             self.record_button.setChecked(False)
             activate_trigger(RECORD, None)
         else:
