@@ -8,7 +8,7 @@ from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
                        KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger,
-                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler)
+                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler, STOP_RECORDING)
 
 
 class KeyframeEditorWidget(QWidget):
@@ -72,8 +72,9 @@ class KeyframeEditorWidget(QWidget):
 
         # Record button
         self.record_button = QPushButton("Record")
+        self.record_button.setCheckable(True)
         self.button_layout.addWidget(self.record_button)
-        self.record_button.clicked.connect(lambda: activate_trigger(RECORD, None))
+        self.record_button.toggled.connect(self.recording_toggle)
 
         # Add button
         self.add_button = QPushButton("Add")
@@ -137,6 +138,15 @@ class KeyframeEditorWidget(QWidget):
         keyframes = self.kfe_scene.get_selected_keyframes()
         for keyframe in keyframes:
             activate_trigger(KF_DELETE, keyframe.get_name())
+
+    def recording_toggle(self, checked):
+        """
+        param checked: True if the record button is activated, False if it was activated and is now deactivated
+        """
+        if checked:
+            activate_trigger(RECORD, None)
+        else:
+            activate_trigger(STOP_RECORDING, None)
 
     def remove_handlers(self):
         for handler in self.handlers:
