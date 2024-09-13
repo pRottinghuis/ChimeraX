@@ -127,7 +127,7 @@ class Animation(StateManager):
         """
         Insert time into the animation. All keyframes after the target time will be moved by the amount for insertion.
         """
-        if not self.validate_time(target_time):
+        if not self.validate_time(target_time, ignore_length=True):
             return
         if not isinstance(amount_for_insertion, (int, float)):
             self.logger.warning(f"Amount for insertion must be an integer or float.")
@@ -135,9 +135,17 @@ class Animation(StateManager):
         if amount_for_insertion < 0:
             self.logger.warning(f"Can't insert negative time.")
             return
-        if self.length + amount_for_insertion > self.MAX_LENGTH:
-            self.logger.warning(f"Can't insert time because it would exceed the {self.MAX_LENGTH} second limit.")
-            return
+        # If the target time is greater than the length of the animation, try to make the animation longer
+        if target_time > self.length:
+            if self.length + target_time + amount_for_insertion > self.MAX_LENGTH:
+                self.logger.warning(f"Can't insert time because it would exceed the {self.MAX_LENGTH} second limit.")
+                return
+            # Extend the length of the animation to accommodate the target time
+            self.set_length(self.length + target_time)
+        else:
+            if self.length + amount_for_insertion > self.MAX_LENGTH:
+                self.logger.warning(f"Can't insert time because it would exceed the {self.MAX_LENGTH} second limit.")
+                return
         self.set_length(self.length + amount_for_insertion)
 
         # Move all keyframes after the target time by the amount for insertion.
@@ -418,7 +426,7 @@ class Animation(StateManager):
             return 0
         return self.keyframes[-1].get_time()
 
-    def validate_time(self, time):
+    def validate_time(self, time, ignore_length=False):
         """
         Validate time for keyframe. Time must be a number, between 0 and the length of the animation, and not already
         taken
@@ -426,7 +434,7 @@ class Animation(StateManager):
         if not isinstance(time, (int, float)):
             self.logger.warning(f"Time must be an integer or float")
             return False
-        if not self.time_in_range(time):
+        if not ignore_length and not self.time_in_range(time):
             self.logger.warning(f"Time must be between 0 and {self.length}")
             return False
         if time in [kf.get_time() for kf in self.keyframes]:
