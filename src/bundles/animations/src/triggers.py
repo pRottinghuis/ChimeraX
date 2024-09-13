@@ -3,9 +3,11 @@ from chimerax.core.triggerset import TriggerSet
 from typing import Optional, Any, Callable
 
 # Signals for once the animation manager has made an action
-MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, MGR_FRAME_PLAYED = manager_triggers = (
+(MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, MGR_FRAME_PLAYED, MGR_RECORDING_START,
+ MRG_RECORDING_STOP) = manager_triggers = (
     "animations mgr keyframe added", "animations mgr keyframe deleted", "animations mgr keyframe edited",
-    "animations mgr length changed", "animations mgr previewed", "animations mgr frame played")
+    "animations mgr length changed", "animations mgr previewed", "animations mgr frame played",
+    "animations mgr recording start", "animations mgr recording stop")
 
 """
 All MGR_ prefix commands are triggered by the animations manager once an action has been completed.
