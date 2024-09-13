@@ -29,6 +29,9 @@ def register_command(command_name, logger):
     elif command_name == "animations record":
         func = record
         desc = record_desc
+    elif command_name == "animations stopRecording":
+        func = stop_recording
+        desc = stop_recording_desc
     elif command_name == "animations insertTime":
         func = insert_time
         desc = insert_time_desc
@@ -251,6 +254,18 @@ record_desc = CmdDesc(
     synopsis="Record the animation."
 )
 
+
+def stop_recording(session):
+    """
+    Stop the recording of the animation.
+    """
+    animation_mgr: Animation = session.get_state_manager("animations")
+    animation_mgr.stop_playing(stop_recording=True)
+
+
+stop_recording_desc = CmdDesc(
+    synopsis="Stop the recording of the animation."
+)
 
 def insert_time(session, target_time: int | float, time: int | float):
     """
