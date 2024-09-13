@@ -275,6 +275,9 @@ class Animation(StateManager):
         :param encode_data: dict representing arguments for the movie encode command. If None, then the default
         :param reverse: Bool. True play in reverse False play forward.
         """
+        if self._is_recording:
+            self.logger.warning(f"Already recording an animation. Stop recording before starting a new one.")
+            return
         self._record_data = record_data
         self._encode_data = encode_data
         # Add framerate to the encode data. The movie command takes this as a separate argument from the encode command
