@@ -289,14 +289,17 @@ class Animation(StateManager):
         self._is_recording = True
         self.play(reverse)
 
-    def stop_playing(self):
-        if self._is_recording:
+    def stop_playing(self, stop_recording=False):
+        if self._is_recording and not stop_recording:
             return
         if self._call_for_n_frames is not None:
             self._call_for_n_frames.done()
             self._is_playing = False
             self._call_for_n_frames = None
             self.logger.status(f"Stopped playing animation.")
+
+            if stop_recording:
+                self._try_end_recording()
 
     def _gen_lerp_steps(self):
         if len(self.keyframes) < 1:
