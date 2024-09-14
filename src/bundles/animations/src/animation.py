@@ -381,10 +381,10 @@ class Animation(StateManager):
             return
 
         self.length = length
-        activate_trigger(MGR_LENGTH_CHANGED, self.length)
         # make sure to update the interpolation steps after time is adjusted
         self._need_frames_update = True
         self.logger.info(f"Updated animation length to {format_time(self.length)}")
+        activate_trigger(MGR_LENGTH_CHANGED, self.length)
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
