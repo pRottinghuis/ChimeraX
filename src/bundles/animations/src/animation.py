@@ -113,8 +113,8 @@ class Animation(StateManager):
         kf_to_delete = self.get_keyframe(keyframe_name)
         self.keyframes.remove(kf_to_delete)
         self._need_frames_update = True
-        activate_trigger(MGR_KF_DELETED, kf_to_delete)
         self.logger.info(f"Deleted keyframe {keyframe_name}")
+        activate_trigger(MGR_KF_DELETED, kf_to_delete)
 
     def delete_all_keyframes(self):
         while len(self.keyframes) > 0:
