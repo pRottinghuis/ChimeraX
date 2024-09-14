@@ -225,8 +225,8 @@ class Animation(StateManager):
             step = len(self._lerp_steps) - 1
         scene1, scene2, fraction = self._lerp_steps[step]
         self.session.scenes.interpolate_scenes(scene1, scene2, fraction)
-        activate_trigger(MGR_PREVIEWED, time)
         self.logger.info(f"Previewing animation at time {format_time(time)}")
+        activate_trigger(MGR_PREVIEWED, time)
 
     def play(self, start_time=0, reverse=False):
         if self._is_playing:
