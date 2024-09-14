@@ -80,8 +80,8 @@ class Animation(StateManager):
         self.keyframes.append(new_kf)
         self._sort_keyframes()
         self._need_frames_update = True
-        activate_trigger(MGR_KF_ADDED, new_kf)
         self.logger.info(f"Created keyframe: {keyframe_name} at time: {format_time(kf_time)}")
+        activate_trigger(MGR_KF_ADDED, new_kf)
 
     def edit_keyframe_time(self, keyframe_name, time):
         if not self.keyframe_exists(keyframe_name):
