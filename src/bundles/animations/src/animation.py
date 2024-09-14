@@ -157,6 +157,7 @@ class Animation(StateManager):
         for kf in reversed(self.keyframes):
             if kf.get_time() > target_time:
                 kf.set_time(kf.get_time() + amount_for_insertion)
+                self._need_frames_update = True
                 activate_trigger(MGR_KF_EDITED, kf)
 
         self.logger.info(f"Inserted {amount_for_insertion} seconds at time {target_time}")
