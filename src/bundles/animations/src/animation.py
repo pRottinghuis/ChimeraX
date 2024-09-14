@@ -117,10 +117,12 @@ class Animation(StateManager):
         activate_trigger(MGR_KF_DELETED, kf_to_delete)
 
     def delete_all_keyframes(self):
+        if len(self.keyframes) < 1:
+            self.logger.warning(f"There are no keyframes.")
+            return
         while len(self.keyframes) > 0:
-            kf = self.keyframes.pop()
-            activate_trigger(MGR_KF_DELETED, kf)
-        self._need_frames_update = True
+            kf = self.keyframes[-1]
+            self.delete_keyframe(kf.get_name())
         self.logger.info(f"Deleted all keyframes")
 
     def insert_time(self, target_time, amount_for_insertion):
