@@ -103,8 +103,8 @@ class Animation(StateManager):
         kf.set_time(time)
         self._sort_keyframes()
         self._need_frames_update = True
-        activate_trigger(MGR_KF_EDITED, kf)
         self.logger.info(f"Edited keyframe {keyframe_name} to time: {format_time(time)}")
+        activate_trigger(MGR_KF_EDITED, kf)
 
     def delete_keyframe(self, keyframe_name):
         if not self.keyframe_exists(keyframe_name):
