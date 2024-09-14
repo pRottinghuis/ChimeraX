@@ -228,7 +228,7 @@ class KeyframeEditorScene(QGraphicsScene):
 
         # Connect triggers from the animation manager in the session to the keyframe editor
         self.handlers.append(add_handler(MGR_KF_ADDED, lambda trigger_name, data: self.add_kf_item(data)))
-        self.handlers.append(add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.move_keyframe_item(data)))
+        self.handlers.append(add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.handle_keyframe_edit(data)))
         self.handlers.append(add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data)))
         self.handlers.append(add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.animation_len_changed(data)))
         self.handlers.append(add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
@@ -255,7 +255,7 @@ class KeyframeEditorScene(QGraphicsScene):
         self.keyframes[kf.get_name()] = keyframe_item
         self.addItem(keyframe_item)
 
-    def move_keyframe_item(self, kf):
+    def handle_keyframe_edit(self, kf):
         """
         Move a keyframe item to a new time.
         :param kf: animations.Keyframe object
@@ -264,6 +264,7 @@ class KeyframeEditorScene(QGraphicsScene):
         if keyframe_item is None:
             raise ValueError(f"Keyframe graphics item with name {kf.get_name()} not found.")
         keyframe_item.set_position_from_time(kf.get_time())
+        self.cursor.activate_preview_trigger()
 
     def delete_kf_item(self, kf):
         """
