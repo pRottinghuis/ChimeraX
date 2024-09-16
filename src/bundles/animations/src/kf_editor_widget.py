@@ -367,7 +367,7 @@ class Timeline(QGraphicsItemGroup):
     SCALE = 60  # Scale factor. Pixels per second.
 
     def __init__(self, time_length=5, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
-        # TODO convert length param into seconds and update the tick marks accordingly
+        # TODO convert interval from pixels to time and do the same for major_interval
         super().__init__()
         self.time_length = time_length  # Length of the timeline in seconds
         # Length of the timeline in pixels. Can only be a whole number of pixels.
