@@ -392,7 +392,7 @@ class Animation(StateManager):
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
-        n_frames = round(d_time * self.fps)
+        n_frames = round(d_time * self.fps)  # TODO make sure round results in the right number of frames
 
         # create an array of % decimals that linearly range (0.0, 1.0) in n_frames steps
         fractions = [i / (n_frames - 1) for i in range(n_frames)]  # TODO is causing divide by 0 errors
