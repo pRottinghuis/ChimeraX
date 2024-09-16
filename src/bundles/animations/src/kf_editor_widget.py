@@ -510,11 +510,7 @@ class KeyframeItem(QGraphicsPixmapItem):
             if isinstance(item, KeyframeItem) and item is not self:
                 # Check if the x position is taken by another item
                 if item.x() == new_x:
-                    # Move this item over the blocking item in the direction that the drag was initiated.
-                    if old_x < new_x:
-                        new_x += 1
-                    else:
-                        new_x -= 1
+                    return old_x
         return new_x
 
     def trigger_for_edit(self):
