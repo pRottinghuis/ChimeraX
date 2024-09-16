@@ -309,6 +309,11 @@ class KeyframeEditorScene(QGraphicsScene):
             current_pos = event.scenePos()
             rect = QRectF(self.selection_start_pos, current_pos).normalized()
             self.selection_box.setRect(rect)
+            for keyframe_item in self.keyframes.values():
+                if rect.intersects(keyframe_item.sceneBoundingRect()):
+                    keyframe_item.setSelected(True)
+                else:
+                    keyframe_item.setSelected(False)
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event, QGraphicsSceneMouseEvent=None):
