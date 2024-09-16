@@ -395,7 +395,7 @@ class Animation(StateManager):
         n_frames = round(d_time * self.fps)
 
         # create an array of % decimals that linearly range (0.0, 1.0) in n_frames steps
-        fractions = [i / (n_frames - 1) for i in range(n_frames)]
+        fractions = [i / (n_frames - 1) for i in range(n_frames)]  # TODO is causing divide by 0 errors
 
         # return an array of tuples of (kf1, kf2, fraction) for each fraction in fractions
         return [(kf1, kf2, f) for f in fractions]
