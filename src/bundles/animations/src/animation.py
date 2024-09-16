@@ -175,7 +175,7 @@ class Animation(StateManager):
         if amount_for_removal < 0:
             self.logger.warning(f"Can't remove negative time.")
             return
-        if amount_for_removal > self.get_time_length() - amount_for_removal:
+        if target_time > self.get_time_length() - amount_for_removal:
             self.logger.warning(f"Can't remove {format_time(amount_for_removal)} seconds because it would remove target"
                                 f" time {format_time(target_time)}.")
             return
