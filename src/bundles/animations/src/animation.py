@@ -2,6 +2,7 @@ from chimerax.core.state import StateManager, State
 from chimerax.core.commands.motion import CallForNFrames
 from chimerax.core.commands.run import run
 from chimerax.core.triggerset import TriggerSet
+from chimerax.core.errors import UserError
 from .triggers import MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, activate_trigger, \
     MGR_FRAME_PLAYED, MGR_RECORDING_START, MGR_RECORDING_STOP
 
@@ -298,7 +299,7 @@ class Animation(StateManager):
         self._try_frame_refresh()
         # Stop a movie if one is already recording
         if hasattr(self.session, 'movie') and self.session.movie is not None:
-            run(self.session, "movie stop", log=False)
+            run(self.session, "movie reset", log=False)
         from chimerax.movie.moviecmd import movie_record
         # If we want to ever show commands in the log this needs to be converted
         movie_record(self.session, **self._record_data)
@@ -408,7 +409,12 @@ class Animation(StateManager):
             run(self.session, "movie stop", log=False)
             from chimerax.movie.moviecmd import movie_encode
             # If this command ever wants to be seen in the log would have to unpack the encode_data dict and pass it
-            movie_encode(self.session, **self._encode_data)
+            try:
+                movie_encode(self.session, **self._encode_data)
+            except UserError as e:
+                # This user error can happen if the output is invalid or the encoding fails. We still need to run our
+                # code to stop recording and reset the recording flag and fire our trigger.
+                self.logger.error(str(e))
             self._is_recording = False
             activate_trigger(MGR_RECORDING_STOP, None)
 
