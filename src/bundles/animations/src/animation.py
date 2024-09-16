@@ -143,7 +143,7 @@ class Animation(StateManager):
                 self.logger.warning(f"Can't insert time because it would exceed the {self.MAX_LENGTH} second limit.")
                 return
             # Extend the length of the animation to accommodate the target time
-            self.set_length(self.length + target_time)
+            self.set_length(target_time)
         else:
             if self.length + amount_for_insertion > self.MAX_LENGTH:
                 self.logger.warning(f"Can't insert time because it would exceed the {self.MAX_LENGTH} second limit.")
@@ -167,7 +167,7 @@ class Animation(StateManager):
         Remove time from the animation. All keyframes after the target time will be moved closer to the target time.
         """
 
-        if not self.validate_time(target_time):
+        if not self.validate_time(target_time, ignore_keyframes=True):
             return
         if not isinstance(amount_for_removal, (int, float)):
             self.logger.warning(f"Amount for removal must be an integer or float.")
@@ -429,7 +429,7 @@ class Animation(StateManager):
             return 0
         return self.keyframes[-1].get_time()
 
-    def validate_time(self, time, ignore_length=False):
+    def validate_time(self, time, ignore_length=False, ignore_keyframes=False):
         """
         Validate time for keyframe. Time must be a number, between 0 and the length of the animation, and not already
         taken
@@ -440,7 +440,7 @@ class Animation(StateManager):
         if not ignore_length and not self.time_in_range(time):
             self.logger.warning(f"Time must be between 0 and {self.length}")
             return False
-        if time in [kf.get_time() for kf in self.keyframes]:
+        if not ignore_keyframes and time in [kf.get_time() for kf in self.keyframes]:
             self.logger.warning(f"Time {time} is already taken by a different keyframe.")
             return False
         return True
