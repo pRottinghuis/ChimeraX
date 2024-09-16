@@ -175,9 +175,9 @@ class Animation(StateManager):
         if amount_for_removal < 0:
             self.logger.warning(f"Can't remove negative time.")
             return
-        if amount_for_removal >= self.get_time_length():
-            self.logger.warning(f"Can't remove {amount_for_removal} seconds because it would make the animation length "
-                                f"<= 0.")
+        if amount_for_removal > self.get_time_length() - amount_for_removal:
+            self.logger.warning(f"Can't remove {format_time(amount_for_removal)} seconds because it would remove target"
+                                f" time {format_time(target_time)}.")
             return
         frames_after_time_change = (self.get_time_length() - amount_for_removal) * self.get_frame_rate()
         if frames_after_time_change < 1:
@@ -199,7 +199,7 @@ class Animation(StateManager):
                 activate_trigger(MGR_KF_EDITED, kf)
 
         self.set_length(self.length - amount_for_removal)
-        self.logger.info(f"Removed {amount_for_removal} seconds at time {target_time}")
+        self.logger.info(f"Removed {amount_for_removal} seconds at time {format_time(target_time)}")
 
     def list_keyframes(self) -> list[str]:
         """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
