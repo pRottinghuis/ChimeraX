@@ -1,9 +1,9 @@
 from Qt.QtWidgets import (QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene,
                           QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton,
                           QSizePolicy, QLabel,
-                          QHBoxLayout, QStyle)
-from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize, QTimer
-from Qt.QtGui import QPixmap, QPen, QTransform
+                          QHBoxLayout, QStyle, QGraphicsRectItem)
+from Qt.QtCore import QByteArray, Qt, QPointF, QLineF, QObject, Signal, QSize, QTimer, QRectF
+from Qt.QtGui import QPixmap, QPen, QTransform, QBrush
 from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
@@ -223,6 +223,10 @@ class KeyframeEditorScene(QGraphicsScene):
         self.addItem(self.cursor)
         self.keyframes = {}  # Dictionary of keyframe name to KeyframeItem
 
+        # Box for highlight drag.
+        self.selection_box = None
+        self.selection_start_pos = None
+
         for kf in keyframes:
             self.add_kf_item(kf)
 
@@ -293,14 +297,42 @@ class KeyframeEditorScene(QGraphicsScene):
                 self.clearSelection()
             if self.timeline.contains(clicked_pos):
                 self.cursor.setPos(clicked_pos)
+
+            # Activate a selection box if click happened in blank space.
+            if not self.itemAt(clicked_pos, QTransform()):
+                self.start_selection_box(clicked_pos)
         super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        # Adjust the selection box if it has been started.
+        if self.selection_box:
+            current_pos = event.scenePos()
+            rect = QRectF(self.selection_start_pos, current_pos).normalized()
+            self.selection_box.setRect(rect)
+        super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event, QGraphicsSceneMouseEvent=None):
         if event.button() == Qt.LeftButton:
             keyframes = self.get_selected_keyframes()
             for keyframes in keyframes:
                 keyframes.trigger_for_edit()
+
+            # End the selection box if it has been started.
+            if self.selection_box:
+                self.end_selection_box(event.scenePos())
         super().mouseReleaseEvent(event)
+
+    def start_selection_box(self, pos):
+        self.selection_start_pos = pos
+        self.selection_box = QGraphicsRectItem(QRectF(pos, pos))
+        self.selection_box.setPen(QPen(Qt.yellow, 1, Qt.DashLine))
+        self.selection_box.setBrush(QBrush(Qt.transparent))
+        self.addItem(self.selection_box)
+
+    def end_selection_box(self, pos):
+        self.removeItem(self.selection_box)
+        self.selection_box = None
+        self.selection_start_pos = None
 
     def on_selection_changed(self):
         selected_keyframes = self.get_selected_keyframes()
