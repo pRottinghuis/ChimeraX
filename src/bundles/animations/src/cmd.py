@@ -203,6 +203,17 @@ def record(session, r_directory=None, r_pattern=None, r_format=None,
         session.logger.warning("Need at least 1 keyframes to record the animation.")
         return
 
+    from chimerax.movie import formats
+    suffixes = set(fmt['suffix'] for fmt in formats.formats.values())
+    if not e_output:
+        session.logger.warning("Output file must be specified")
+        return
+    for output in e_output:
+        if output and not any(output.endswith(suffix) for suffix in suffixes):
+            session.logger.warning(f"Output file must have one of the following suffixes: {', '.join(suffixes)}")
+            return
+
+
     record_params = {
         'directory': r_directory,
         'pattern': r_pattern,
