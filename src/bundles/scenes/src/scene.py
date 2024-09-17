@@ -60,6 +60,12 @@ class Scene(State):
             if model in self.named_view.positions:
                 model.positions = self.named_view.positions[model]
 
+    def models_removed(self, models: [str]):
+        for model in models:
+            if model in self.named_view.positions:
+                del self.named_view.positions[model]
+        return
+
     def create_main_view_data(self):
         """
         Created nested dictionary of the main view data using variation of the ViewState take_snapshot method.
