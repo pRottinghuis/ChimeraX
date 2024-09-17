@@ -72,6 +72,11 @@ class SceneManager(StateManager):
             scene1 = self.scenes[scene_name1]
             scene2 = self.scenes[scene_name2]
 
+            if not Scene.interpolatable(scene1, scene2):
+                self.session.logger.warning(f"Cannot interpolate between scenes {scene_name1} and {scene_name2} because"
+                                         f"they are incompatible.")
+                return
+
             ViewState.interpolate(
                 self.session.view,
                 scene1.main_view_data,
