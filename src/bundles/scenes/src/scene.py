@@ -117,6 +117,17 @@ class Scene(State):
         del self.session.restore_options['restore camera']
 
     @staticmethod
+    def interpolatable(scene1, scene2):
+        """
+        Check if two scenes are interpolatable. Scenes are interpolatable if they have the same models in
+        their named_views.
+        """
+        scene1_models = scene1.named_view.positions.keys()
+        scene2_models = scene2.named_view.positions.keys()
+        # Sets to disregard order
+        return set(scene1_models) == set(scene2_models)
+
+    @staticmethod
     def restore_snapshot(session, data):
         return Scene(session, scene_data=data)
 
