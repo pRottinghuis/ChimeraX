@@ -366,7 +366,14 @@ class KeyframeEditorScene(QGraphicsScene):
 class Timeline(QGraphicsItemGroup):
     SCALE = 60  # Scale factor. Pixels per second.
 
-    def __init__(self, time_length=5, interval=6, major_interval=60, tick_length=10, major_tick_length=20):
+    def __init__(self, time_length=5, interval=0.1, major_interval=1, tick_length=10, major_tick_length=20):
+        """
+        :param time_length: Length of the timeline in seconds
+        :param interval: Interval between tick marks in seconds
+        :param major_interval: Interval between major tick marks in seconds
+        :param tick_length: Length of the tick marks in pixels
+        :param major_tick_length: Length of the major tick marks in pixels
+        """
         # TODO convert interval from pixels to time and do the same for major_interval
         super().__init__()
         self.time_length = time_length  # Length of the timeline in seconds
@@ -381,20 +388,23 @@ class Timeline(QGraphicsItemGroup):
     def update_tick_marks(self):
         y_position = 60  # Top positions of the tick marks and labels on the y-axis
 
+        pixel_interval = int(self.interval * self.SCALE)
+        pixel_major_interval = int(self.major_interval * self.SCALE)
+
         # Clear existing tick marks and labels
         for item in self.childItems():
             self.removeFromGroup(item)
             self.scene().removeItem(item)
 
-        for i in range(0, self.pix_length + 1, self.interval):
+        for i in range(0, self.pix_length + 1, pixel_interval):
             position = QPointF(i, y_position)
-            if i % self.major_interval == 0:
+            if i % pixel_major_interval == 0:
                 tick_mark = QGraphicsLineItem(
                     QLineF(position, QPointF(position.x(), position.y() + self.major_tick_length)))
                 tick_mark.setPen(QPen(Qt.gray, 1))
                 self.addToGroup(tick_mark)
 
-                time_label = QGraphicsTextItem(f"{i // self.major_interval}")
+                time_label = QGraphicsTextItem(f"{i // pixel_major_interval}")
                 text_rect = time_label.boundingRect()
                 time_label.setPos(position.x() - text_rect.width() / 2, y_position + self.major_tick_length)
                 self.addToGroup(time_label)
