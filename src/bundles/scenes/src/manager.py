@@ -24,7 +24,7 @@
 
 from chimerax.core.state import StateManager
 from chimerax.graphics.gsession import ViewState
-from .scene import Scene
+from .scene import Scene, SceneColors
 
 
 class SceneManager(StateManager):
@@ -90,6 +90,8 @@ class SceneManager(StateManager):
             view2 = scene2.named_view
             centers = _model_motion_centers(view1.positions, view2.positions)
             _interpolate_views(view1, view2, fraction, self.session.main_view, centers)
+
+            SceneColors.interpolate(self.session, scene1.get_colors(), scene2.get_colors(), fraction)
         return
 
     def _remove_models_cb(self, trig_name, models):

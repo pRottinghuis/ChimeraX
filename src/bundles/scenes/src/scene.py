@@ -27,6 +27,8 @@ from chimerax.core.state import State
 from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState
 from chimerax.geometry.psession import PlaceState
 from chimerax.std_commands.view import NamedView
+import numpy as np
+from chimerax.core.objects import all_objects
 
 import copy
 
@@ -47,10 +49,14 @@ class Scene(State):
             self.main_view_data = self.create_main_view_data()
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
+            self.scene_colors = SceneColors(session)
         else:
             # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
+            self.atom_colors = scene_data['atom_colors']
+            self.scene_colors = SceneColors(session, color_data=scene_data['scene_colors'])
+        return
 
     def restore_scene(self):
         self.restore_main_view_data(self.main_view_data)
@@ -59,11 +65,13 @@ class Scene(State):
         for model in current_models:
             if model in self.named_view.positions:
                 model.positions = self.named_view.positions[model]
+        self.scene_colors.restore_colors()
 
     def models_removed(self, models: [str]):
         for model in models:
             if model in self.named_view.positions:
                 del self.named_view.positions[model]
+        self.scene_colors.models_removed(models)
         return
 
     def create_main_view_data(self):
@@ -116,6 +124,9 @@ class Scene(State):
         ViewState.restore_snapshot(self.session, restore_data)
         del self.session.restore_options['restore camera']
 
+    def get_colors(self):
+        return self.scene_colors
+
     @staticmethod
     def interpolatable(scene1, scene2):
         """
@@ -125,15 +136,154 @@ class Scene(State):
         scene1_models = scene1.named_view.positions.keys()
         scene2_models = scene2.named_view.positions.keys()
         # Sets to disregard order
-        return set(scene1_models) == set(scene2_models)
+        named_views = set(scene1_models) == set(scene2_models)
+
+        scene_colors = SceneColors.interpolatable(scene1.get_colors(), scene2.get_colors())
+
+        return named_views and scene_colors
 
     @staticmethod
     def restore_snapshot(session, data):
         return Scene(session, scene_data=data)
 
     def take_snapshot(self, session, flags):
+
         return {
             'version': self.version,
             'main_view_data': self.main_view_data,
             'named_view': self.named_view.take_snapshot(session, flags),
+            'scene_colors': self.scene_colors.take_snapshot(session, flags)
         }
+
+
+class SceneColors(State):
+
+    version = 0
+
+    def __init__(self, session, color_data=None):
+        self.session = session
+
+        # Save colors by model name dict. Then when restoring access objects.atoms.by_structure and apply the matching
+        # value out of the model dict.
+
+        if color_data:
+            self.atom_colors = color_data['atom_colors']
+            self.cartoon_colors = color_data['cartoon_colors']
+            self.ribbon_colors = color_data['ribbons_colors']
+            self.surface_colors = color_data['surface_colors']
+            self.bond_colors = color_data['bond_colors']
+            self.model_colors = color_data['model_colors']
+            self.pseudobond_colors = color_data['pseudobond_colors']
+            self.ring_colors = color_data['ring_colors']
+            self.label_colors = color_data['label_colors']
+        else:
+            self.atom_colors = {}
+            self.cartoon_colors = None
+            self.ribbon_colors = {}
+            self.surface_colors = None
+            self.bond_colors = None
+            self.model_colors = None
+            self.pseudobond_colors = None
+            self.ring_colors = None
+            self.label_colors = None
+            self.initialize_colors()
+        return
+
+    def initialize_colors(self):
+        objects = all_objects(self.session)
+
+        for (model, atoms) in objects.atoms.by_structure:
+            self.atom_colors[model] = atoms.colors
+
+        for (model, ribbons) in objects.residues.by_structure:
+            self.ribbon_colors[model] = ribbons.ribbon_colors
+
+    def restore_colors(self):
+        objects = all_objects(self.session)
+
+        for (model, atoms) in objects.atoms.by_structure:
+            if model in self.atom_colors.keys():
+                atoms.colors = self.atom_colors[model]
+
+        for (model, ribbons) in objects.residues.by_structure:
+            if model in self.ribbon_colors.keys():
+                ribbons.ribbon_colors = self.ribbon_colors[model]
+
+    def models_removed(self, models: [str]):
+        for model in models:
+            if model in self.atom_colors:
+                del self.atom_colors[model]
+            if model in self.ribbon_colors:
+                del self.ribbon_colors[model]
+
+    def get_atom_colors(self):
+        return self.atom_colors
+
+    def set_atom_colors(self, colors):
+        self.atom_colors = colors
+
+    def get_ribbon_colors(self):
+        return self.ribbon_colors
+
+    def set_ribbon_colors(self, colors):
+        self.ribbon_colors = colors
+
+    @staticmethod
+    def interpolatable(scene1_colors, scene2_colors):
+        if scene1_colors.atom_colors.keys() != scene2_colors.atom_colors.keys():
+            return False
+        if scene1_colors.ribbon_colors.keys() != scene2_colors.ribbon_colors.keys():
+            return False
+        return True
+
+    @staticmethod
+    def interpolate(session, scene1_colors, scene2_colors, fraction):
+        """
+        Precondition: scene1_colors and scene2_colors are interpolatable.
+        """
+
+        objects = all_objects(session)
+
+        atom_colors_1 = scene1_colors.get_atom_colors()
+        atom_colors_2 = scene2_colors.get_atom_colors()
+        for (model, atoms) in objects.atoms.by_structure:
+            if model in atom_colors_1 and model in atom_colors_2:
+                atoms.colors = rgba_ndarray_lerp(atom_colors_1[model], atom_colors_2[model], fraction)
+
+        ribbon_colors_1 = scene1_colors.get_ribbon_colors()
+        ribbon_colors_2 = scene2_colors.get_ribbon_colors()
+        for (model, ribbons) in objects.residues.by_structure:
+            if model in ribbon_colors_1 and model in ribbon_colors_2:
+                ribbons.ribbon_colors = rgba_ndarray_lerp(ribbon_colors_1[model], ribbon_colors_2[model], fraction)
+
+    def take_snapshot(self, session, flags):
+        return {
+            'version': self.version,
+            'atom_colors': self.atom_colors,
+            'cartoon_colors': self.cartoon_colors,
+            'ribbons_colors': self.ribbon_colors,
+            'surface_colors': self.surface_colors,
+            'bond_colors': self.bond_colors,
+            'model_colors': self.model_colors,
+            'pseudobond_colors': self.pseudobond_colors,
+            'ring_colors': self.ring_colors,
+            'label_colors': self.label_colors
+        }
+
+    @staticmethod
+    def restore_snapshot(session, data):
+        if data['version'] != SceneColors.version:
+            raise ValueError("Cannot restore SceneColors data with version %d" % data['version'])
+        return SceneColors(session, color_data=data)
+
+
+def rgba_ndarray_lerp(rgba_arr1, rgba_arr2, fraction):
+    """
+    Linear interpolation of two RGBA numpy arrays. Fraction is the weight of the second array.
+    """
+    rgba_arr1_copy = np.copy(rgba_arr1)
+    rgba_arr2_copy = np.copy(rgba_arr2)
+    interpolated = rgba_arr1_copy * (1 - fraction) + rgba_arr2_copy * fraction
+    # Convert back to uint8. This is necessary because the interpolation may have created floats which is not supported
+    # by the colors attribute in the atoms object.
+    return interpolated.astype(np.uint8)
