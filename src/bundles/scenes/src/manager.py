@@ -57,6 +57,7 @@ class SceneManager(StateManager):
         if scene_name in self.scenes:
             self.delete_scene(scene_name)
         self.scenes[scene_name] = Scene(self.session)
+        self.triggers.activate_trigger(self.ADDED, scene_name)
         return
 
     def restore_scene(self, scene_name):
