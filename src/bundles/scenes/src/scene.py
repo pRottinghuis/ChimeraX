@@ -204,7 +204,7 @@ class SceneColors(State):
         # Bonds colors
         for (model, bonds) in objects.bonds.by_structure:
             self.bond_colors[model] = bonds.colors
-            self.halfbonds[model] = bonds.halfbonds
+            self.halfbonds[model] = bonds.halfbonds  # Boolean ndarray indicating half bond drawing style per bond
 
         # Residue Colors
         for (model, ribbons) in objects.residues.by_structure:
