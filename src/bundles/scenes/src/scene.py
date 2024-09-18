@@ -239,6 +239,10 @@ class SceneColors(State):
         for model in models:
             if model in self.atom_colors:
                 del self.atom_colors[model]
+            if model in self.bond_colors:
+                del self.bond_colors[model]
+            if model in self.halfbonds:
+                del self.halfbonds[model]
             if model in self.ribbon_colors:
                 del self.ribbon_colors[model]
 
