@@ -188,7 +188,7 @@ class SceneColors(State):
     def initialize_colors(self):
         """
         Initialize values for the color attributes. Collections from the c++ layer have a by_structure attribute which
-        maps object pointers to their respective models. For example atoms.by_structure is a dictionary mapping models
+        maps models to their respective object pointers. For example atoms.by_structure is a dictionary mapping models
         to their respective atoms objects. We can use this to store the colors for each model and then restore them
         later using the same mapping. Keeping track of what colors belong to what model allow us to handle models being
         closed.
