@@ -50,12 +50,14 @@ class Scene(State):
             models = session.models.list()
             self.named_view = NamedView(self.session.view, self.session.view.center_of_rotation, models)
             self.scene_colors = SceneColors(session)
+            self.scene_visibility = SceneVisibility(session)
         else:
             # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
             self.atom_colors = scene_data['scene_colors']
             self.scene_colors = SceneColors(session, color_data=scene_data['scene_colors'])
+            self.scene_visibility = SceneVisibility(session, visibility_data=scene_data['scene_visibility'])
         return
 
     def restore_scene(self):
@@ -66,12 +68,14 @@ class Scene(State):
             if model in self.named_view.positions:
                 model.positions = self.named_view.positions[model]
         self.scene_colors.restore_colors()
+        self.scene_visibility.restore_visibility()
 
     def models_removed(self, models: [str]):
         for model in models:
             if model in self.named_view.positions:
                 del self.named_view.positions[model]
         self.scene_colors.models_removed(models)
+        self.scene_visibility.models_removed(models)
         return
 
     def create_main_view_data(self):
@@ -127,6 +131,9 @@ class Scene(State):
     def get_colors(self):
         return self.scene_colors
 
+    def get_visibility(self):
+        return self.scene_visibility
+
     @staticmethod
     def interpolatable(scene1, scene2):
         """
@@ -139,6 +146,7 @@ class Scene(State):
         named_views = set(scene1_models) == set(scene2_models)
 
         scene_colors = SceneColors.interpolatable(scene1.get_colors(), scene2.get_colors())
+        # TODO add scene visibility
 
         return named_views and scene_colors
 
@@ -152,7 +160,8 @@ class Scene(State):
             'version': self.version,
             'main_view_data': self.main_view_data,
             'named_view': self.named_view.take_snapshot(session, flags),
-            'scene_colors': self.scene_colors.take_snapshot(session, flags)
+            'scene_colors': self.scene_colors.take_snapshot(session, flags),
+            'scene_visibility': self.scene_visibility.take_snapshot(session, flags)
         }
 
 
@@ -392,3 +401,50 @@ def rgba_ndarray_lerp(rgba_arr1, rgba_arr2, fraction):
     # Convert back to uint8. This is necessary because the interpolation may have created floats which is not supported
     # by the colors attribute in the atoms object.
     return interpolated.astype(np.uint8)
+
+
+class SceneVisibility(State):
+
+    version = 0
+
+    def __init__(self, session, *, visibility_data=None):
+        self.session = session
+        if visibility_data:
+            self.model_visibility = visibility_data['model_visibility']
+        else:
+            self.model_visibility = {}
+            self.initialize_visibility()
+        return
+
+    def initialize_visibility(self):
+        objects = all_objects(self.session)
+
+        for model in objects.models:
+            self.model_visibility[model] = model.display
+        return
+
+    def restore_visibility(self):
+        objects = all_objects(self.session)
+
+        for model in objects.models:
+            if model in self.model_visibility:
+                model.display = self.model_visibility[model]
+
+    def models_removed(self, models: [str]):
+        for model in models:
+            if model in self.model_visibility:
+                del self.model_visibility[model]
+
+    # TODO implement interpolatable and interpolate methods
+
+    def take_snapshot(self, session, flags):
+        return {
+            'version': self.version,
+            'model_visibility': self.model_visibility
+        }
+
+    @staticmethod
+    def restore_snapshot(session, data):
+        if SceneVisibility.version != data['version']:
+            raise ValueError("Cannot restore SceneVisibility data with version %d" % data['version'])
+        return SceneVisibility(session, visibility_data=data)
