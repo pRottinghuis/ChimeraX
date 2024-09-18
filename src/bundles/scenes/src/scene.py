@@ -54,7 +54,7 @@ class Scene(State):
             # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
-            self.atom_colors = scene_data['atom_colors']
+            self.atom_colors = scene_data['scene_colors']
             self.scene_colors = SceneColors(session, color_data=scene_data['scene_colors'])
         return
 
@@ -171,14 +171,23 @@ class SceneColors(State):
 
         if color_data:
             self.atom_colors = color_data['atom_colors']
-            self.ribbon_colors = color_data['ribbons_colors']
+            self.bond_colors = color_data['bond_colors']
+            self.halfbonds = color_data['halfbonds']
+            self.pseudobond_colors = color_data['pseudobond_colors']
+            self.pbond_halfbonds = color_data['pbond_halfbonds']
+            self.ribbon_colors = color_data['ribbon_colors']
+            self.ring_colors = color_data['ring_colors']
         else:
             # Atom colors
             self.atom_colors = {}
 
             # Bond colors
             self.bond_colors = {}
-            self.halfbonds = {}
+            self.halfbonds = {}  # Boolean ndarray indicating half bond drawing style per bond
+
+            # Pseudobond colors
+            self.pseudobond_colors = {}
+            self.pbond_halfbonds = {}  # Boolean ndarray indicating half bond drawing style per pseudobond
 
             # Residue colors
             self.ribbon_colors = {}
@@ -207,6 +216,11 @@ class SceneColors(State):
             self.bond_colors[model] = bonds.colors
             self.halfbonds[model] = bonds.halfbonds  # Boolean ndarray indicating half bond drawing style per bond
 
+        # Pseudobonds colors
+        for (pbond_group, pseudobonds) in objects.pseudobonds.by_group:
+            self.pseudobond_colors[pbond_group] = pseudobonds.colors
+            self.pbond_halfbonds[pbond_group] = pseudobonds.halfbonds
+
         # Residue Colors
         for (model, residues) in objects.residues.by_structure:
             self.ribbon_colors[model] = residues.ribbon_colors
@@ -230,6 +244,12 @@ class SceneColors(State):
                 bonds.colors = self.bond_colors[model]
                 bonds.halfbonds = self.halfbonds[model]
 
+        # Pseudobonds colors
+        for (pbond_group, pseudobonds) in objects.pseudobonds.by_group:
+            if pbond_group in self.pseudobond_colors.keys():
+                pseudobonds.colors = self.pseudobond_colors[pbond_group]
+                pseudobonds.halfbonds = self.pbond_halfbonds[pbond_group]
+
         # Residue Colors
         for (model, residues) in objects.residues.by_structure:
             if model in self.ribbon_colors.keys():
@@ -240,10 +260,17 @@ class SceneColors(State):
         for model in models:
             if model in self.atom_colors:
                 del self.atom_colors[model]
+
             if model in self.bond_colors:
                 del self.bond_colors[model]
             if model in self.halfbonds:
                 del self.halfbonds[model]
+
+            if model in self.pseudobond_colors:
+                del self.pseudobond_colors[model]
+            if model in self.pbond_halfbonds:
+                del self.pbond_halfbonds[model]
+
             if model in self.ribbon_colors:
                 del self.ribbon_colors[model]
             if model in self.ring_colors:
@@ -260,6 +287,12 @@ class SceneColors(State):
 
     def get_halfbonds(self):
         return self.halfbonds
+
+    def get_pseudobond_colors(self):
+        return self.pseudobond_colors
+
+    def get_pbond_halfbonds(self):
+        return self.pbond_halfbonds
 
     def get_ribbon_colors(self):
         return self.ribbon_colors
@@ -301,6 +334,17 @@ class SceneColors(State):
             if model in halfbonds_1 and model in halfbonds_2:
                 bonds.halfbonds = bool_ndarray_threshold_lerp(halfbonds_1[model], halfbonds_2[model], fraction)
 
+        # Pseudobond colors
+        pseudobond_colors_1 = scene1_colors.get_pseudobond_colors()
+        pseudobond_colors_2 = scene2_colors.get_pseudobond_colors()
+        pbond_halfbonds_1 = scene1_colors.get_pbond_halfbonds()
+        pbond_halfbonds_2 = scene2_colors.get_pbond_halfbonds()
+        for (pbond_group, pseudobonds) in objects.pseudobonds.by_group:
+            if pbond_group in pseudobond_colors_1 and pbond_group in pseudobond_colors_2:
+                pseudobonds.colors = rgba_ndarray_lerp(pseudobond_colors_1[pbond_group], pseudobond_colors_2[pbond_group], fraction)
+            if pbond_group in pbond_halfbonds_1 and pbond_group in pbond_halfbonds_2:
+                pseudobonds.halfbonds = bool_ndarray_threshold_lerp(pbond_halfbonds_1[pbond_group], pbond_halfbonds_2[pbond_group], fraction)
+
         # Residues colors
         ribbon_colors_1 = scene1_colors.get_ribbon_colors()
         ribbon_colors_2 = scene2_colors.get_ribbon_colors()
@@ -313,11 +357,15 @@ class SceneColors(State):
                 ribbons.ring_colors = rgba_ndarray_lerp(ring_colors_1[model], ring_colors_2[model], fraction)
 
     def take_snapshot(self, session, flags):
-        # TODO make sure to save all attrs here
         return {
             'version': self.version,
             'atom_colors': self.atom_colors,
-            'ribbons_colors': self.ribbon_colors,
+            'bond_colors': self.bond_colors,
+            'halfbonds': self.halfbonds,
+            'pseudobond_colors': self.pseudobond_colors,
+            'pbond_halfbonds': self.pbond_halfbonds,
+            'ribbon_colors': self.ribbon_colors,
+            'ring_colors': self.ring_colors
         }
 
     @staticmethod
