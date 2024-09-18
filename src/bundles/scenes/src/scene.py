@@ -182,6 +182,7 @@ class SceneColors(State):
 
             # Residue colors
             self.ribbon_colors = {}
+            self.ring_colors = {}
 
             self.initialize_colors()
         return
@@ -207,8 +208,9 @@ class SceneColors(State):
             self.halfbonds[model] = bonds.halfbonds  # Boolean ndarray indicating half bond drawing style per bond
 
         # Residue Colors
-        for (model, ribbons) in objects.residues.by_structure:
-            self.ribbon_colors[model] = ribbons.ribbon_colors
+        for (model, residues) in objects.residues.by_structure:
+            self.ribbon_colors[model] = residues.ribbon_colors
+            self.ring_colors[model] = residues.ring_colors
 
     def restore_colors(self):
         """
@@ -229,11 +231,10 @@ class SceneColors(State):
                 bonds.halfbonds = self.halfbonds[model]
 
         # Residue Colors
-        for (model, ribbons) in objects.residues.by_structure:
+        for (model, residues) in objects.residues.by_structure:
             if model in self.ribbon_colors.keys():
-                ribbons.ribbon_colors = self.ribbon_colors[model]
-
-        return
+                residues.ribbon_colors = self.ribbon_colors[model]
+                residues.ring_colors = self.ring_colors[model]
 
     def models_removed(self, models: [str]):
         for model in models:
@@ -245,6 +246,8 @@ class SceneColors(State):
                 del self.halfbonds[model]
             if model in self.ribbon_colors:
                 del self.ribbon_colors[model]
+            if model in self.ring_colors:
+                del self.ring_colors[model]
 
     def get_atom_colors(self):
         return self.atom_colors
@@ -260,6 +263,9 @@ class SceneColors(State):
 
     def get_ribbon_colors(self):
         return self.ribbon_colors
+
+    def get_ring_colors(self):
+        return self.ring_colors
 
     @staticmethod
     def interpolatable(scene1_colors, scene2_colors):
@@ -297,9 +303,13 @@ class SceneColors(State):
         # Residues colors
         ribbon_colors_1 = scene1_colors.get_ribbon_colors()
         ribbon_colors_2 = scene2_colors.get_ribbon_colors()
+        ring_colors_1 = scene1_colors.get_ring_colors()
+        ring_colors_2 = scene2_colors.get_ring_colors()
         for (model, ribbons) in objects.residues.by_structure:
             if model in ribbon_colors_1 and model in ribbon_colors_2:
                 ribbons.ribbon_colors = rgba_ndarray_lerp(ribbon_colors_1[model], ribbon_colors_2[model], fraction)
+            if model in ring_colors_1 and model in ring_colors_2:
+                ribbons.ring_colors = rgba_ndarray_lerp(ring_colors_1[model], ring_colors_2[model], fraction)
 
     def take_snapshot(self, session, flags):
         return {
