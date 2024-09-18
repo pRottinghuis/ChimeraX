@@ -178,6 +178,7 @@ class SceneColors(State):
 
             # Bond colors
             self.bond_colors = {}
+            self.halfbonds = {}
 
             # Residue colors
             self.ribbon_colors = {}
@@ -203,6 +204,7 @@ class SceneColors(State):
         # Bonds colors
         for (model, bonds) in objects.bonds.by_structure:
             self.bond_colors[model] = bonds.colors
+            self.halfbonds[model] = bonds.halfbonds
 
         # Residue Colors
         for (model, ribbons) in objects.residues.by_structure:
@@ -224,11 +226,14 @@ class SceneColors(State):
         for (model, bonds) in objects.bonds.by_structure:
             if model in self.bond_colors.keys():
                 bonds.colors = self.bond_colors[model]
+                bonds.halfbonds = self.halfbonds[model]
 
         # Residue Colors
         for (model, ribbons) in objects.residues.by_structure:
             if model in self.ribbon_colors.keys():
                 ribbons.ribbon_colors = self.ribbon_colors[model]
+
+        return
 
     def models_removed(self, models: [str]):
         for model in models:
@@ -245,6 +250,9 @@ class SceneColors(State):
 
     def get_bond_colors(self):
         return self.bond_colors
+
+    def get_halfbonds(self):
+        return self.halfbonds
 
     def get_ribbon_colors(self):
         return self.ribbon_colors
@@ -277,9 +285,13 @@ class SceneColors(State):
         # Bond colors
         bond_colors_1 = scene1_colors.get_bond_colors()
         bond_colors_2 = scene2_colors.get_bond_colors()
+        halfbonds_1 = scene1_colors.get_halfbonds()
+        halfbonds_2 = scene2_colors.get_halfbonds()
         for (model, bonds) in objects.bonds.by_structure:
             if model in bond_colors_1 and model in bond_colors_2:
                 bonds.colors = rgba_ndarray_lerp(bond_colors_1[model], bond_colors_2[model], fraction)
+            if model in halfbonds_1 and model in halfbonds_2:
+                bonds.halfbonds = bool_ndarray_threshold_lerp(halfbonds_1[model], halfbonds_2[model], fraction)
 
         # Residues colors
         ribbon_colors_1 = scene1_colors.get_ribbon_colors()
@@ -300,6 +312,13 @@ class SceneColors(State):
         if data['version'] != SceneColors.version:
             raise ValueError("Cannot restore SceneColors data with version %d" % data['version'])
         return SceneColors(session, color_data=data)
+
+
+def bool_ndarray_threshold_lerp(bool_arr1, bool_arr2, fraction):
+    """
+    Threshold lerp for bool numpy arrays. Fraction 0.5 is the threshold.
+    """
+    return bool_arr1 if fraction < 0.5 else bool_arr2
 
 
 def rgba_ndarray_lerp(rgba_arr1, rgba_arr2, fraction):
