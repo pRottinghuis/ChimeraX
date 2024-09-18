@@ -204,7 +204,7 @@ class SceneColors(State):
         for (model, bonds) in objects.bonds.by_structure:
             self.bond_colors[model] = bonds.colors
 
-        # Ribbons Colors
+        # Residue Colors
         for (model, ribbons) in objects.residues.by_structure:
             self.ribbon_colors[model] = ribbons.ribbon_colors
 
@@ -215,10 +215,17 @@ class SceneColors(State):
 
         objects = all_objects(self.session)
 
+        # Atoms colors
         for (model, atoms) in objects.atoms.by_structure:
             if model in self.atom_colors.keys():
                 atoms.colors = self.atom_colors[model]
 
+        # Bonds colors
+        for (model, bonds) in objects.bonds.by_structure:
+            if model in self.bond_colors.keys():
+                bonds.colors = self.bond_colors[model]
+
+        # Residue Colors
         for (model, ribbons) in objects.residues.by_structure:
             if model in self.ribbon_colors.keys():
                 ribbons.ribbon_colors = self.ribbon_colors[model]
