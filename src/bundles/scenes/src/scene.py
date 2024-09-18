@@ -171,24 +171,17 @@ class SceneColors(State):
 
         if color_data:
             self.atom_colors = color_data['atom_colors']
-            self.cartoon_colors = color_data['cartoon_colors']
             self.ribbon_colors = color_data['ribbons_colors']
-            self.surface_colors = color_data['surface_colors']
-            self.bond_colors = color_data['bond_colors']
-            self.model_colors = color_data['model_colors']
-            self.pseudobond_colors = color_data['pseudobond_colors']
-            self.ring_colors = color_data['ring_colors']
-            self.label_colors = color_data['label_colors']
         else:
+            # Atom colors
             self.atom_colors = {}
-            self.cartoon_colors = None
+
+            # Bond colors
+            self.bond_colors = {}
+
+            # Residue colors
             self.ribbon_colors = {}
-            self.surface_colors = None
-            self.bond_colors = None
-            self.model_colors = None
-            self.pseudobond_colors = None
-            self.ring_colors = None
-            self.label_colors = None
+
             self.initialize_colors()
         return
 
@@ -275,14 +268,7 @@ class SceneColors(State):
         return {
             'version': self.version,
             'atom_colors': self.atom_colors,
-            'cartoon_colors': self.cartoon_colors,
             'ribbons_colors': self.ribbon_colors,
-            'surface_colors': self.surface_colors,
-            'bond_colors': self.bond_colors,
-            'model_colors': self.model_colors,
-            'pseudobond_colors': self.pseudobond_colors,
-            'ring_colors': self.ring_colors,
-            'label_colors': self.label_colors
         }
 
     @staticmethod
