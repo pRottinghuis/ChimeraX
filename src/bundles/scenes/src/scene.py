@@ -261,9 +261,6 @@ class SceneColors(State):
     def get_ribbon_colors(self):
         return self.ribbon_colors
 
-    def set_ribbon_colors(self, colors):
-        self.ribbon_colors = colors
-
     @staticmethod
     def interpolatable(scene1_colors, scene2_colors):
         if scene1_colors.atom_colors.keys() != scene2_colors.atom_colors.keys():
