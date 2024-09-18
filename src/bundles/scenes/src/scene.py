@@ -243,6 +243,9 @@ class SceneColors(State):
     def set_atom_colors(self, colors):
         self.atom_colors = colors
 
+    def get_bond_colors(self):
+        return self.bond_colors
+
     def get_ribbon_colors(self):
         return self.ribbon_colors
 
@@ -271,6 +274,14 @@ class SceneColors(State):
             if model in atom_colors_1 and model in atom_colors_2:
                 atoms.colors = rgba_ndarray_lerp(atom_colors_1[model], atom_colors_2[model], fraction)
 
+        # Bond colors
+        bond_colors_1 = scene1_colors.get_bond_colors()
+        bond_colors_2 = scene2_colors.get_bond_colors()
+        for (model, bonds) in objects.bonds.by_structure:
+            if model in bond_colors_1 and model in bond_colors_2:
+                bonds.colors = rgba_ndarray_lerp(bond_colors_1[model], bond_colors_2[model], fraction)
+
+        # Residues colors
         ribbon_colors_1 = scene1_colors.get_ribbon_colors()
         ribbon_colors_2 = scene2_colors.get_ribbon_colors()
         for (model, ribbons) in objects.residues.by_structure:
