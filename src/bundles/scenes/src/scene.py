@@ -158,13 +158,16 @@ class Scene(State):
 
 class SceneColors(State):
 
+    """
+    SceneColors is a class that stores color data for session objects. See chimerax.atomic.molarray.py to see the c++
+    layer objects that this SceneColors interacts with. See chimerax.std_commands.color.py to see examples of changing
+    colors.
+    """
+
     version = 0
 
     def __init__(self, session, color_data=None):
         self.session = session
-
-        # Save colors by model name dict. Then when restoring access objects.atoms.by_structure and apply the matching
-        # value out of the model dict.
 
         if color_data:
             self.atom_colors = color_data['atom_colors']
@@ -190,6 +193,14 @@ class SceneColors(State):
         return
 
     def initialize_colors(self):
+        """
+        Initialize values for the color attributes. Collections from the c++ layer have a by_structure attribute which
+        maps object pointers to their respective models. For example atoms.by_structure is a dictionary mapping models
+        to their respective atoms objects. We can use this to store the colors for each model and then restore them
+        later using the same mapping. Keeping track of what colors belong to what model allow us to handle models being
+        closed.
+        """
+
         objects = all_objects(self.session)
 
         for (model, atoms) in objects.atoms.by_structure:
@@ -199,6 +210,10 @@ class SceneColors(State):
             self.ribbon_colors[model] = ribbons.ribbon_colors
 
     def restore_colors(self):
+        """
+        Move through by_structure for each object type and restore the colors.
+        """
+
         objects = all_objects(self.session)
 
         for (model, atoms) in objects.atoms.by_structure:
@@ -239,7 +254,7 @@ class SceneColors(State):
     @staticmethod
     def interpolate(session, scene1_colors, scene2_colors, fraction):
         """
-        Precondition: scene1_colors and scene2_colors are interpolatable.
+        Linear interpolation of two SceneColors objects.
         """
 
         objects = all_objects(session)
