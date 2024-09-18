@@ -269,6 +269,7 @@ class SceneColors(State):
 
     @staticmethod
     def interpolatable(scene1_colors, scene2_colors):
+        # TODO update with all attrs
         if scene1_colors.atom_colors.keys() != scene2_colors.atom_colors.keys():
             return False
         if scene1_colors.ribbon_colors.keys() != scene2_colors.ribbon_colors.keys():
@@ -312,6 +313,7 @@ class SceneColors(State):
                 ribbons.ring_colors = rgba_ndarray_lerp(ring_colors_1[model], ring_colors_2[model], fraction)
 
     def take_snapshot(self, session, flags):
+        # TODO make sure to save all attrs here
         return {
             'version': self.version,
             'atom_colors': self.atom_colors,
