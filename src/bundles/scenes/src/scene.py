@@ -308,10 +308,19 @@ class SceneColors(State):
 
     @staticmethod
     def interpolatable(scene1_colors, scene2_colors):
-        # TODO update with all attrs
         if scene1_colors.atom_colors.keys() != scene2_colors.atom_colors.keys():
             return False
+        if scene1_colors.bond_colors.keys() != scene2_colors.bond_colors.keys():
+            return False
+        if scene1_colors.halfbonds.keys() != scene2_colors.halfbonds.keys():
+            return False
+        if scene1_colors.pseudobond_colors.keys() != scene2_colors.pseudobond_colors.keys():
+            return False
+        if scene1_colors.pbond_halfbonds.keys() != scene2_colors.pbond_halfbonds.keys():
+            return False
         if scene1_colors.ribbon_colors.keys() != scene2_colors.ribbon_colors.keys():
+            return False
+        if scene1_colors.ring_colors.keys() != scene2_colors.ring_colors.keys():
             return False
         return True
 
