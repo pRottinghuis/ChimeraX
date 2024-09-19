@@ -146,9 +146,9 @@ class Scene(State):
         named_views = set(scene1_models) == set(scene2_models)
 
         scene_colors = SceneColors.interpolatable(scene1.get_colors(), scene2.get_colors())
-        # TODO add scene visibility
+        scene_visibility = SceneVisibility.interpolatable(scene1.get_visibility(), scene2.get_visibility())
 
-        return named_views and scene_colors
+        return named_views and scene_colors and scene_visibility
 
     @staticmethod
     def restore_snapshot(session, data):
@@ -417,8 +417,18 @@ class SceneVisibility(State):
         self.session = session
         if visibility_data:
             self.model_visibility = visibility_data['model_visibility']
+            self.atom_displays = visibility_data['atom_displays']
+            self.bond_displays = visibility_data['bond_displays']
+            self.pseudobond_displays = visibility_data['pseudobond_displays']
+            self.ribbon_displays = visibility_data['ribbon_displays']
+            self.ring_displays = visibility_data['ring_displays']
         else:
             self.model_visibility = {}
+            self.atom_displays = {}
+            self.bond_displays = {}
+            self.pseudobond_displays = {}
+            self.ribbon_displays = {}
+            self.ring_displays = {}
             self.initialize_visibility()
         return
 
@@ -427,6 +437,16 @@ class SceneVisibility(State):
 
         for model in objects.models:
             self.model_visibility[model] = model.display
+        for (structure, atom) in objects.atoms.by_structure:
+            self.atom_displays[structure] = atom.displays
+        for (structure, bond) in objects.bonds.by_structure:
+            self.bond_displays[structure] = bond.displays
+        for (pbond_group, pseudobonds) in objects.pseudobonds.by_group:
+            self.pseudobond_displays[pbond_group] = pseudobonds.displays
+        for (structure, residues) in objects.residues.by_structure:
+            self.ribbon_displays[structure] = residues.ribbon_displays
+            self.ring_displays[structure] = residues.ring_displays
+
         return
 
     def restore_visibility(self):
@@ -435,18 +455,117 @@ class SceneVisibility(State):
         for model in objects.models:
             if model in self.model_visibility:
                 model.display = self.model_visibility[model]
+        for (structure, atom) in objects.atoms.by_structure:
+            if structure in self.atom_displays:
+                atom.displays = self.atom_displays[structure]
+        for (structure, bond) in objects.bonds.by_structure:
+            if structure in self.bond_displays:
+                bond.displays = self.bond_displays[structure]
+        for (pbond_group, pseudobonds) in objects.pseudobonds.by_group:
+            if pbond_group in self.pseudobond_displays:
+                pseudobonds.displays = self.pseudobond_displays[pbond_group]
+        for (structure, residues) in objects.residues.by_structure:
+            if structure in self.ribbon_displays:
+                residues.ribbon_displays = self.ribbon_displays[structure]
+            if structure in self.ring_displays:
+                residues.ring_displays = self.ring_displays[structure]
 
     def models_removed(self, models: [str]):
         for model in models:
             if model in self.model_visibility:
                 del self.model_visibility[model]
+            if model in self.atom_displays:
+                del self.atom_displays[model]
+            if model in self.bond_displays:
+                del self.bond_displays[model]
+            if model in self.pseudobond_displays:
+                del self.pseudobond_displays[model]
+            if model in self.ribbon_displays:
+                del self.ribbon_displays[model]
+            if model in self.ring_displays:
+                del self.ring_displays[model]
 
-    # TODO implement interpolatable and interpolate methods
+    def get_model_visibility(self):
+        return self.model_visibility
+
+    def get_atom_displays(self):
+        return self.atom_displays
+
+    def get_bond_displays(self):
+        return self.bond_displays
+
+    def get_pbond_displays(self):
+        return self.pseudobond_displays
+
+    def get_ribbon_displays(self):
+        return self.ribbon_displays
+
+    def get_ring_displays(self):
+        return self.ring_displays
+
+    @staticmethod
+    def interpolatable(scene1_visibility, scene2_visibility):
+        if scene1_visibility.model_visibility.keys() != scene2_visibility.model_visibility.keys():
+            return False
+        if scene1_visibility.atom_displays.keys() != scene2_visibility.atom_displays.keys():
+            return False
+        if scene1_visibility.bond_displays.keys() != scene2_visibility.bond_displays.keys():
+            return False
+        if scene1_visibility.pseudobond_displays.keys() != scene2_visibility.pseudobond_displays.keys():
+            return False
+        if scene1_visibility.ribbon_displays.keys() != scene2_visibility.ribbon_displays.keys():
+            return False
+        if scene1_visibility.ring_displays.keys() != scene2_visibility.ring_displays.keys():
+            return False
+        return True
+
+    @staticmethod
+    def interpolate(session, scene1_visibility, scene2_visibility, fraction):
+        objects = all_objects(session)
+
+        model_visibility_1 = scene1_visibility.get_model_visibility()
+        model_visibility_2 = scene2_visibility.get_model_visibility()
+        for model in objects.models:
+            if model in model_visibility_1 and model in model_visibility_2:
+                model.display = bool_ndarray_threshold_lerp(model_visibility_1[model], model_visibility_2[model], fraction)
+
+        atom_displays_1 = scene1_visibility.get_atom_displays()
+        atom_displays_2 = scene2_visibility.get_atom_displays()
+        for (structure, atom) in objects.atoms.by_structure:
+            if structure in atom_displays_1 and structure in atom_displays_2:
+                atom.displays = bool_ndarray_threshold_lerp(atom_displays_1[structure], atom_displays_2[structure], fraction)
+
+        bond_displays_1 = scene1_visibility.get_bond_displays()
+        bond_displays_2 = scene2_visibility.get_bond_displays()
+        for (structure, bond) in objects.bonds.by_structure:
+            if structure in bond_displays_1 and structure in bond_displays_2:
+                bond.displays = bool_ndarray_threshold_lerp(bond_displays_1[structure], bond_displays_2[structure], fraction)
+
+        pseudobond_displays_1 = scene1_visibility.get_pbond_displays()
+        pseudobond_displays_2 = scene2_visibility.get_pbond_displays()
+        for (pbond_group, pseudobonds) in objects.pseudobonds.by_group:
+            if pbond_group in pseudobond_displays_1 and pbond_group in pseudobond_displays_2:
+                pseudobonds.displays = bool_ndarray_threshold_lerp(pseudobond_displays_1[pbond_group], pseudobond_displays_2[pbond_group], fraction)
+
+        ribbon_displays_1 = scene1_visibility.get_ribbon_displays()
+        ribbon_displays_2 = scene2_visibility.get_ribbon_displays()
+        ring_displays_1 = scene1_visibility.get_ring_displays()
+        ring_displays_2 = scene2_visibility.get_ring_displays()
+        for (structure, residues) in objects.residues.by_structure:
+            if structure in ribbon_displays_1 and structure in ribbon_displays_2:
+                residues.ribbon_displays = bool_ndarray_threshold_lerp(ribbon_displays_1[structure], ribbon_displays_2[structure], fraction)
+            if structure in ring_displays_1 and structure in ring_displays_2:
+                residues.ring_displays = bool_ndarray_threshold_lerp(ring_displays_1[structure], ring_displays_2[structure], fraction)
 
     def take_snapshot(self, session, flags):
         return {
             'version': self.version,
-            'model_visibility': self.model_visibility
+            'model_visibility': self.model_visibility,
+            'atom_displays': self.atom_displays,
+            'bond_displays': self.bond_displays,
+            'pseudobond_displays': self.pseudobond_displays,
+            'ribbon_displays': self.ribbon_displays,
+            'ring_displays': self.ring_displays
         }
 
     @staticmethod
