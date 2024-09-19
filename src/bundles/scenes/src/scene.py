@@ -55,7 +55,6 @@ class Scene(State):
             # load a scene
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
-            self.atom_colors = scene_data['scene_colors']
             self.scene_colors = SceneColors(session, color_data=scene_data['scene_colors'])
             self.scene_visibility = SceneVisibility(session, visibility_data=scene_data['scene_visibility'])
         return
