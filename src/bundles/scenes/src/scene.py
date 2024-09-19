@@ -288,9 +288,6 @@ class SceneColors(State):
     def get_atom_colors(self):
         return self.atom_colors
 
-    def set_atom_colors(self, colors):
-        self.atom_colors = colors
-
     def get_bond_colors(self):
         return self.bond_colors
 
