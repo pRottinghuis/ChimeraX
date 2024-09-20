@@ -1,3 +1,23 @@
+"""
+This module defines commands for managing animations in ChimeraX.
+
+Functions:
+    register_command(command_name, logger): Register a command with the given name and logger.
+    keyframe(session, action, keyframe_name, time): Edit actions on a keyframe in the animation StateManager.
+    timeline(session): List all keyframes in the animation StateManager in the log.
+    play(session, start_time, reverse): Play the animation from the Animation state manager.
+    stop(session): Pause the animation that is playing.
+    preview(session, time): Preview the animation at a specific time.
+    set_length(session, length): Set the length of the animation.
+    record(session, r_directory, r_pattern, r_format, r_size, r_supersample, r_transparent_background, r_limit,
+        e_output, e_format, e_quality, e_qscale, e_bitrate, e_round_trip,
+        e_reset_mode, e_wait, e_verbose): Record the animation using the movie bundle.
+    stop_recording(session): Stop recording the animation and encode the movie.
+    insert_time(session, target_time, amount_for_insertion): Insert time into the animation.
+    remove_time(session, target_time, amount_for_removal): Remove time from the animation.
+    clear(session): Clear all keyframes from the animation.
+"""
+
 from chimerax.core.commands import run, CmdDesc, register, ListOf, StringArg, FloatArg, BoolArg, IntArg, \
     SaveFileNameArg, EnumOf
 from .animation import Animation
@@ -8,6 +28,13 @@ from typing import Optional
 
 
 def register_command(command_name, logger):
+    """
+    Register a command with the given name and logger.
+
+    Args:
+        command_name (str): The name of the command to register.
+        logger: The logger to use for logging messages.
+    """
     if command_name == "animations keyframe":
         func = keyframe
         desc = keyframe_desc
@@ -48,12 +75,13 @@ def register_command(command_name, logger):
 
 def keyframe(session, action: str, keyframe_name: str, time: int | float | None = None):
     """
-    Chimnerax Command for edit actions on a keyframe in the animation StateManager. add/edit/delete keyframes.
-    Add keyframe will use the scenes scene command to create a new scene to add to the state manager.
-    :param session: The current session.
-    :param action: The action to take on the keyframe. Options are add, edit, delete.
-    :param keyframe_name: Name of the keyframe for the action to be applied to. This will also be used for the scene name.
-    :param time: The time in seconds for the keyframe.
+    Edit actions on a keyframe in the animation StateManager. Add, edit, or delete keyframes.
+
+    Args:
+        session: The current session.
+        action (str): The action to take on the keyframe. Options are add, edit, delete.
+        keyframe_name (str): Name of the keyframe for the action to be applied to. Also be used for the scene name.
+        time (int | float, optional): The time in seconds for the keyframe.
     """
 
     animation_mgr: Animation = session.get_state_manager("animations")
@@ -98,7 +126,10 @@ keyframe_desc = CmdDesc(
 
 def timeline(session):
     """
-    ChimeraX command to list all keyframes in the animation StateManager in the log.
+    List all keyframes in the animation StateManager in the log.
+
+    Args:
+        session: The current session.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     keyframes = animation_mgr.list_keyframes()
@@ -113,9 +144,12 @@ timeline_desc = CmdDesc(
 
 def play(session, start_time=0, reverse=False):
     """
-    Play the animation in the StateManager.
-    :param session: The current session.
-    :param reverse: Play the animation in reverse.
+    Play the animation in the Animations state manager.
+
+    Args:
+        session: The current session.
+        start_time (int | float, optional): Time to start playing the animation in seconds.
+        reverse (bool, optional): True, play the animation in reverse. False, play the animation forward.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
@@ -135,8 +169,10 @@ play_desc = CmdDesc(
 
 def stop(session):
     """
-    Pause the animation in the StateManager.
-    :param session: The current session.
+    Pause the animation in the StateManager. Only pauses if the animation is playing, and not if it is recording.
+
+    Args:
+        session: The current session.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     animation_mgr.stop_playing()
@@ -150,8 +186,10 @@ stop_desc = CmdDesc(
 def preview(session, time: int | float):
     """
     Preview the animation at a specific time.
-    :param session: The current session.
-    :param time: The time in seconds to preview the animation.
+
+    Args:
+        session: The current session.
+        time (int | float): The time in seconds to preview the animation.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if not isinstance(time, (int, float)):
@@ -177,6 +215,10 @@ preview_desc = CmdDesc(
 def set_length(session, length: int | float):
     """
     Set the length of the animation.
+
+    Args:
+        session: The current session.
+        length (int | float): New length of the animation in seconds.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     animation_mgr.set_length(length)
@@ -197,6 +239,25 @@ def record(session, r_directory=None, r_pattern=None, r_format=None,
     """
     Record the animation using the movie bundle. The params are mirrored of what the movie record and encode command
     expects and get directly passed to the movie command inside the Animation class.
+
+    Args:
+        session: The current session.
+        r_directory (str, optional): Directory to save the recording.
+        r_pattern (str, optional): Pattern for the recording file names.
+        r_format (str, optional): Format of the recording.
+        r_size (str, optional): Size of the recording.
+        r_supersample (int, optional): Supersample factor for the recording.
+        r_transparent_background (bool, optional): Whether to use a transparent background.
+        r_limit (int, optional): Frame limit for the recording.
+        e_output (str, optional): Output file for the encoded movie.
+        e_format (str, optional): Format of the encoded movie.
+        e_quality (str, optional): Quality of the encoded movie.
+        e_qscale (int, optional): Qscale for the encoded movie.
+        e_bitrate (int, optional): Bitrate for the encoded movie.
+        e_round_trip (bool, optional): Whether to round trip the movie.
+        e_reset_mode (str, optional): Reset mode for the movie.
+        e_wait (bool, optional): Whether to wait for the encoding to finish.
+        e_verbose (bool, optional): Whether to enable verbose logging.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     if animation_mgr.get_num_keyframes() < 1:
@@ -268,7 +329,10 @@ record_desc = CmdDesc(
 
 def stop_recording(session):
     """
-    Stop the recording of the animation.
+    Stop recording the animation.
+
+    Args:
+        session: The current session.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     animation_mgr.stop_playing(stop_recording=True)
@@ -278,9 +342,15 @@ stop_recording_desc = CmdDesc(
     synopsis="Stop the recording of the animation."
 )
 
+
 def insert_time(session, target_time: int | float, time: int | float):
     """
-    Insert a segment of time at a target point on the timeline. Shift keyframes accordingly.
+    Insert time into the animation. All keyframes after the target time will be moved by the amount for insertion.
+
+    Args:
+        session: The current session.
+        target_time (int | float): Time at which to insert the time in seconds.
+        time (int | float): Amount of time to insert in seconds.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     animation_mgr.insert_time(target_time, time)
@@ -295,12 +365,17 @@ insert_time_desc = CmdDesc(
 )
 
 
-def remove_time(session, start_time: int | float, end_time: int | float):
+def remove_time(session, target_time: int | float, amount_for_removal: int | float):
     """
-    Remove a segment of time from the timeline. Shift keyframes accordingly.
+    Remove time from the animation. All keyframes after the target time will be moved closer to the target time.
+
+    Args:
+        session: The current session.
+        target_time (int | float): Time at which to remove the time in seconds.
+        amount_for_removal (int | float): Amount of time to remove in seconds.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
-    animation_mgr.remove_time(start_time, end_time)
+    animation_mgr.remove_time(target_time, amount_for_removal)
 
 
 remove_time_desc = CmdDesc(
@@ -314,7 +389,10 @@ remove_time_desc = CmdDesc(
 
 def clear(session):
     """
-    Remove all keyframes from the animations StateManager.
+    Clear all keyframes from the animation.
+
+    Args:
+        session: The current session.
     """
     animation_mgr: Animation = session.get_state_manager("animations")
     animation_mgr.delete_all_keyframes()

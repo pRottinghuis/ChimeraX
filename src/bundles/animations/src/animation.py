@@ -1,3 +1,14 @@
+"""
+This module defines the Animation and Keyframe classes for managing animations in ChimeraX.
+
+Classes:
+    Animation: Manages the creation, deletion, saving, restoring, and interpolation of animations.
+    Keyframe: Represents a keyframe in an animation, storing a scene name, time, and thumbnail.
+
+Functions:
+    format_time(time): Convert time in seconds to min:sec.__ format.
+"""
+
 from chimerax.core.state import StateManager, State
 from chimerax.core.commands.motion import CallForNFrames
 from chimerax.core.commands.run import run
@@ -10,6 +21,15 @@ import io
 
 
 def format_time(time):
+    """
+        Convert time in seconds to min:sec.__ format.
+
+        Args:
+            time (float): Time in seconds.
+
+        Returns:
+            str: Formatted time string.
+        """
     """Convert time in seconds to min:sec.__ format."""
     minutes = int(time // 60)
     seconds = int(time % 60)
@@ -18,6 +38,15 @@ def format_time(time):
 
 
 class Animation(StateManager):
+    """
+    Manages the creation, deletion, saving, restoring, and interpolation of animations.
+
+    Attributes:
+        MAX_LENGTH (int): Maximum length of the animation in seconds.
+        version (int): Version of the Animation class.
+        fps (int): Frames per second for the animation.
+        DEFAULT_LENGTH (int): Default length of the animation in seconds.
+    """
 
     MAX_LENGTH = 5 * 60  # 5 minutes
     version = 0
@@ -25,6 +54,14 @@ class Animation(StateManager):
     DEFAULT_LENGTH = 5  # in seconds
 
     def __init__(self, session, *, animation_data=None):
+        """
+        Initialize the Animation object.
+
+        Args:
+            session: The current session.
+            animation_data (dict, optional): Data to restore the animation from a snapshot.
+        """
+
         self.session = session
         self.logger = session.logger
 
@@ -56,7 +93,11 @@ class Animation(StateManager):
 
     def add_keyframe(self, keyframe_name: str, time: int | float | None = None):
         """
-        Add a keyframe to the animation. The keyframe will be created at the time specified.
+        Add a keyframe to the animation.
+
+        Args:
+            keyframe_name (str): Name of the keyframe.
+            time (int | float, optional): Time of the keyframe in seconds.
         """
 
         # If there is no time param specified, then the keyframe should be created 1 second after the last keyframe or
@@ -85,6 +126,13 @@ class Animation(StateManager):
         activate_trigger(MGR_KF_ADDED, new_kf)
 
     def edit_keyframe_time(self, keyframe_name, time):
+        """
+        Edit the time of an existing keyframe.
+
+        Args:
+            keyframe_name (str): Name of the keyframe.
+            time (int | float): New time for the keyframe.
+        """
         if not self.keyframe_exists(keyframe_name):
             self.logger.warning(f"Can't edit keyframe {keyframe_name} because it doesn't exist.")
             return
@@ -108,6 +156,12 @@ class Animation(StateManager):
         activate_trigger(MGR_KF_EDITED, kf)
 
     def delete_keyframe(self, keyframe_name):
+        """
+        Delete a keyframe from the animation.
+
+        Args:
+            keyframe_name (str): Name of the keyframe to delete.
+        """
         if not self.keyframe_exists(keyframe_name):
             self.logger.warning(f"Can't delete keyframe {keyframe_name} because it doesn't exist.")
             return
@@ -118,6 +172,9 @@ class Animation(StateManager):
         activate_trigger(MGR_KF_DELETED, kf_to_delete)
 
     def delete_all_keyframes(self):
+        """
+        Delete all keyframes from the animation.
+        """
         if len(self.keyframes) < 1:
             self.logger.warning(f"There are no keyframes.")
             return
@@ -129,6 +186,10 @@ class Animation(StateManager):
     def insert_time(self, target_time, amount_for_insertion):
         """
         Insert time into the animation. All keyframes after the target time will be moved by the amount for insertion.
+
+        Args:
+            target_time (int | float): Time at which to insert the time.
+            amount_for_insertion (int | float): Amount of time to insert.
         """
         if not self.validate_time(target_time, ignore_length=True):
             return
@@ -166,6 +227,10 @@ class Animation(StateManager):
     def remove_time(self, target_time, amount_for_removal):
         """
         Remove time from the animation. All keyframes after the target time will be moved closer to the target time.
+
+        Args:
+            target_time (int | float): Time at which to remove the time.
+            amount_for_removal (int | float): Amount of time to remove.
         """
 
         if not self.validate_time(target_time, ignore_keyframes=True):
@@ -203,7 +268,12 @@ class Animation(StateManager):
         self.logger.info(f"Removed {amount_for_removal} seconds at time {format_time(target_time)}")
 
     def list_keyframes(self) -> list[str]:
-        """List all keyframes in the animation with this format: keyframe_name: time(min:sec:millisecond)"""
+        """
+        List all keyframes in the animation.
+
+        Returns:
+            list[str]: List of keyframes with their times.
+        """
         keyframe_list = []
         keyframe_list.append(f"Start: {format_time(0)}")
         for kf in self.keyframes:
@@ -212,6 +282,12 @@ class Animation(StateManager):
         return keyframe_list
 
     def preview(self, time):
+        """
+        Preview the animation at a specific time.
+
+        Args:
+            time (int | float): Time to preview the animation.
+        """
         if not isinstance(time, (int, float)):
             self.logger.warning(f"Time must be an integer or float")
             return
@@ -231,6 +307,13 @@ class Animation(StateManager):
         activate_trigger(MGR_PREVIEWED, time)
 
     def play(self, start_time=0, reverse=False):
+        """
+        Play the animation from a specific start time.
+
+        Args:
+            start_time (int | float, optional): Time to start playing the animation.
+            reverse (bool, optional): Whether to play the animation in reverse.
+        """
         if self._is_playing:
             return
 
@@ -283,9 +366,11 @@ class Animation(StateManager):
     def record(self, record_data=None, encode_data=None, reverse=False):
         """
         Start a recording for the animation using the chimerax.movie module.
-        :param record_data: dict representing arguments for the movie record command. If None, then the default
-        :param encode_data: dict representing arguments for the movie encode command. If None, then the default
-        :param reverse: Bool. True play in reverse False play forward.
+
+        Args:
+            record_data (dict, optional): Arguments for the movie record command.
+            encode_data (dict, optional): Arguments for the movie encode command.
+            reverse (bool, optional): Whether to play the animation in reverse.
         """
         if self._is_recording:
             self.logger.warning(f"Already recording an animation. Stop recording before starting a new one.")
@@ -308,6 +393,12 @@ class Animation(StateManager):
         self.play(reverse)
 
     def stop_playing(self, stop_recording=False):
+        """
+        Stop playing the animation.
+
+        Args:
+            stop_recording (bool, optional): Whether to stop recording as well.
+        """
         if self._is_recording and not stop_recording:
             return
         if self._call_for_n_frames is not None:
@@ -320,6 +411,9 @@ class Animation(StateManager):
                 self._try_end_recording()
 
     def _gen_lerp_steps(self):
+        """
+        Generate interpolation steps for the animation.
+        """
         if len(self.keyframes) < 1:
             self.logger.warning(f"Can't generate lerp steps because there are no keyframes.")
             return
@@ -370,6 +464,12 @@ class Animation(StateManager):
         self.logger.info(f"Finished generating interpolation steps for animation.")
 
     def set_length(self, length):
+        """
+        Set the length of the animation.
+
+        Args:
+            length (int | float): New length of the animation in seconds.
+        """
         if not isinstance(length, (int, float)):
             self.logger.warning(f"Length must be an integer or float")
             return
@@ -391,6 +491,17 @@ class Animation(StateManager):
         activate_trigger(MGR_LENGTH_CHANGED, self.length)
 
     def _gen_ntime_lerp_segment(self, kf1, kf2, d_time):
+        """
+        Generate linear interpolation steps between two keyframes.
+
+        Args:
+            kf1 (str): Name of the first keyframe.
+            kf2 (str): Name of the second keyframe.
+            d_time (int | float): Time difference between the keyframes.
+
+        Returns:
+            list[tuple]: List of interpolation steps.
+        """
         # calculate number of steps/frames between keyframes using delta time and fps. Must be whole number
         n_frames = round(d_time * self.fps)
 
@@ -402,8 +513,7 @@ class Animation(StateManager):
 
     def _try_end_recording(self):
         """
-        If the animation is currently recording, end the recording and encode the movie. It is assumed that this is
-        called after the last frame of the animation is played.
+        End the recording and encode the movie if the animation is currently recording.
         """
         if self._is_recording:
             run(self.session, "movie stop", log=False)
@@ -419,17 +529,25 @@ class Animation(StateManager):
             activate_trigger(MGR_RECORDING_STOP, None)
 
     def _sort_keyframes(self):
-        """Sort keyframes by time. Should be called after any changes to keyframes."""
+        """
+        Sort keyframes by time.
+        """
         self.keyframes.sort(key=lambda kf: kf.get_time())
 
     def _try_frame_refresh(self):
+        """
+        Refresh the interpolation steps if needed.
+        """
         if self._need_frames_update:
             self._gen_lerp_steps()
             self._need_frames_update = False
 
     def _last_kf_time(self):
         """
-        Get the time of the last keyframe. If there are no keyframes, return 0
+        Get the time of the last keyframe.
+
+        Returns:
+            int | float: Time of the last keyframe.
         """
         if len(self.keyframes) < 1:
             return 0
@@ -437,8 +555,15 @@ class Animation(StateManager):
 
     def validate_time(self, time, ignore_length=False, ignore_keyframes=False):
         """
-        Validate time for keyframe. Time must be a number, between 0 and the length of the animation, and not already
-        taken
+        Validate time for a keyframe.
+
+        Args:
+            time (int | float): Time to validate.
+            ignore_length (bool, optional): Whether to ignore the length of the animation.
+            ignore_keyframes (bool, optional): Whether to ignore existing keyframes.
+
+        Returns:
+            bool: True if the time is valid, False otherwise.
         """
         if not isinstance(time, (int, float)):
             self.logger.warning(f"Time must be an integer or float")
@@ -452,34 +577,76 @@ class Animation(StateManager):
         return True
 
     def time_in_range(self, time):
+        """
+        Check if a time is within the range of the animation.
+
+        Args:
+            time (int | float): Time to check.
+
+        Returns:
+            bool: True if the time is within range, False otherwise.
+        """
         return 0 <= time <= self.length
 
     def get_time_length(self):
+        """
+        Get the second length of the animation.
+
+        Returns:
+            int | float: Length of the animation in seconds.
+        """
         return self.length
 
-    def _format_time(self, time):
-        """Convert time in seconds to min:sec.__ format."""
-        minutes = int(time // 60)
-        seconds = int(time % 60)
-        fractional_seconds = round(time % 1, 2)
-        return f"{minutes}:{seconds:02}.{int(fractional_seconds * 100):02}"
-
     def keyframe_exists(self, keyframe_name):
+        """
+        Check if a keyframe exists.
+
+        Args:
+            keyframe_name (str): Name of the keyframe.
+
+        Returns:
+            bool: True if the keyframe exists, False otherwise.
+        """
         return any(kf.get_name() == keyframe_name for kf in self.keyframes)
 
     def get_keyframe(self, keyframe_name):
         return next((kf for kf in self.keyframes if kf.get_name() == keyframe_name), None)
 
     def get_keyframes(self):
+        """
+        Get all keyframes in the animation.
+
+        Returns:
+            list[Keyframe]: List of keyframes.
+        """
         return self.keyframes
 
     def get_num_keyframes(self):
+        """
+        Get the number of keyframes in the animation.
+
+        Returns:
+            int: Number of keyframes.
+        """
         return len(self.keyframes)
 
     def get_frame_rate(self):
+        """
+        Get the frame rate of the animation.
+
+        Returns:
+            int: Frame rate in frames per second.
+        """
         return self.fps
 
     def reset_state(self, session):
+        """
+        Reset the state of the animation. Empty the interpolation steps, delete all keyframes, and set the length to the
+        default length.
+
+        Args:
+            session: The current session.
+        """
         self._lerp_steps: [(str, str, int | float)] = []
         self._need_frames_update = True
         if len(self.keyframes) > 0:
@@ -501,14 +668,26 @@ class Animation(StateManager):
 
 
 class Keyframe(State):
+    """
+    Represents a keyframe in an animation, storing a scene name, time, and thumbnail.
+
+    Attributes:
+        version (int): Version of the Keyframe class.
+        thumbnail_size (tuple): Size of the thumbnail image.
+    """
 
     version = 0
     thumbnail_size = (200, 200)
 
     def __init__(self, session, name, time, thumbnail=None):
         """
-        Keyframes have a name that corresponds to a scene, a time in seconds, and a thumbnail bytes array.
-        Precondition: The scene with the name must exist in the scene manager.
+        Initialize the Keyframe object.
+
+        Args:
+            session: The current session.
+            name (str): Name of the keyframe.
+            time (int | float): Time of the keyframe in seconds.
+            thumbnail (bytes, optional): Thumbnail image data.
         """
 
         self.session = session
@@ -518,7 +697,6 @@ class Keyframe(State):
         # only create the scene if it doesn't exist already. This will prevent scenes from being created extra times
         # when restoring snapshots.
         if not self.scene_mgr.get_scene(name):
-            # TODO hide this log command after testing
             raise ValueError(f"Can't create keyframe {name} because a matching name scene doesn't exist.")
 
         self.name = name
@@ -529,22 +707,51 @@ class Keyframe(State):
             self.thumbnail = thumbnail
 
     def take_thumbnail(self):
-        # Take a thumbnail and return the bytes array for a JPEG image
+        """
+        Take a thumbnail and return the bytes array for a JPEG image.
+
+        Returns:
+            bytes: Thumbnail image data.
+        """
         pil_image = self.session.view.image(*self.thumbnail_size)
         byte_stream = io.BytesIO()
         pil_image.save(byte_stream, format='JPEG')
         return byte_stream.getvalue()
 
     def get_time(self):
+        """
+        Get the time of the keyframe.
+
+        Returns:
+            int | float: Time of the keyframe in seconds.
+        """
         return self.time
 
     def get_name(self):
+        """
+        Get the name of the keyframe.
+
+        Returns:
+            str: Name of the keyframe.
+        """
         return self.name
 
     def get_thumbnail(self):
+        """
+        Get the thumbnail image data.
+
+        Returns:
+            bytes: Thumbnail image data.
+        """
         return self.thumbnail
 
     def set_time(self, time):
+        """
+        Set the time of the keyframe.
+
+        Args:
+            time (int | float): New time in seconds for the keyframe.
+        """
         self.time = time
 
     def take_snapshot(self, session, flags):

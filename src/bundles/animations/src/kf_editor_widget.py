@@ -1,3 +1,18 @@
+"""
+This module defines the KeyframeEditorWidget class and related classes for visualizing and interacting with the
+Animations manager from the animations bundle in ChimeraX.
+
+Classes:
+    KeyframeEditorWidget: A widget for visualizing and interacting with keyframes in an animation.
+    KFEGraphicsView: A custom QGraphicsView for the keyframe editor.
+    KeyframeEditorScene: A custom QGraphicsScene for the keyframe editor.
+    Timeline: A QGraphicsItemGroup representing the timeline.
+    KeyframeItem: A QGraphicsPixmapItem representing a keyframe.
+    TimelineCursor: A QGraphicsLineItem representing the timeline cursor.
+    TickMarkItem: A QGraphicsLineItem representing a tick mark on the timeline.
+    TickIntervalLabel: A QGraphicsTextItem representing a label for tick intervals.
+"""
+
 from Qt.QtWidgets import (QGraphicsPixmapItem, QGraphicsItem, QGraphicsView, QGraphicsScene,
                           QVBoxLayout, QWidget, QGraphicsTextItem, QGraphicsLineItem, QGraphicsItemGroup, QPushButton,
                           QSizePolicy, QLabel,
@@ -8,14 +23,32 @@ from .animation import Animation
 from .animation import format_time
 from .triggers import (MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, KF_ADD,
                        KF_DELETE, KF_EDIT, LENGTH_CHANGE, PREVIEW, PLAY, add_handler, activate_trigger,
-                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler, STOP_RECORDING, MGR_RECORDING_STOP, MGR_RECORDING_START)
+                       MGR_FRAME_PLAYED, RECORD, STOP_PLAYING, REMOVE_TIME, INSERT_TIME, remove_handler, STOP_RECORDING,
+                       MGR_RECORDING_STOP, MGR_RECORDING_START)
 
 
 class KeyframeEditorWidget(QWidget):
+    """
+    A widget for editing keyframes in an animation.
+
+    Attributes:
+        layout (QVBoxLayout): The main layout of the widget.
+        handlers (list): List of handlers for triggers.
+        time_label_layout (QHBoxLayout): Layout for the time label.
+        time_label (QLabel): Label displaying the current time.
+        kfe_view (KFEGraphicsView): Graphics view for the keyframe editor.
+        kfe_scene (KeyframeEditorScene): Graphics scene for the keyframe editor.
+        button_layout (QHBoxLayout): Layout for navigation buttons.
+        time_buttons_layout (QHBoxLayout): Layout for time adjustment buttons.
+    """
+
     def __init__(self, length, keyframes):
         """
-        :param length: Length of the timeline in seconds
-        :param keyframes: List of animation.Keyframe objects
+        Initialize the KeyframeEditorWidget.
+
+        Args:
+            length (int | float): Length of the timeline in seconds.
+            keyframes (list): List of animation.Keyframe objects.
         """
         super().__init__()
         self.layout = QVBoxLayout(self)
@@ -75,8 +108,10 @@ class KeyframeEditorWidget(QWidget):
         self.record_button.setCheckable(True)
         self.button_layout.addWidget(self.record_button)
         self.record_button.clicked.connect(self.recording_toggle)
-        self.handlers.append(add_handler(MGR_RECORDING_START, lambda trigger_name, data: self.record_button.setChecked(True)))
-        self.handlers.append(add_handler(MGR_RECORDING_STOP, lambda trigger_name, data: self.record_button.setChecked(False)))
+        self.handlers.append(
+            add_handler(MGR_RECORDING_START, lambda trigger_name, data: self.record_button.setChecked(True)))
+        self.handlers.append(
+            add_handler(MGR_RECORDING_STOP, lambda trigger_name, data: self.record_button.setChecked(False)))
 
         # Add button
         self.add_button = QPushButton("Add")
@@ -93,6 +128,7 @@ class KeyframeEditorWidget(QWidget):
         # Layout for all the time adjustment buttons
         self.time_buttons_layout = QHBoxLayout()
 
+        # Time adjustment button values
         remove_large = -5
         remove_medium = -2
         remove_small = -0.5
@@ -108,6 +144,12 @@ class KeyframeEditorWidget(QWidget):
         self.layout.addLayout(self.time_buttons_layout)
 
     def add_time_adjustment_button(self, d_time):
+        """
+        Add a button for adjusting the timeline by a specified amount of time.
+
+        Args:
+            d_time (float): The amount of time for the button to adjust the timeline by in seconds.
+        """
         button = QPushButton(f"{d_time}s")
         if d_time < 0:
             trigger_activation = lambda: activate_trigger(
@@ -119,9 +161,18 @@ class KeyframeEditorWidget(QWidget):
         self.time_buttons_layout.addWidget(button)
 
     def update_time_label(self, time):
+        """
+        Update the time label to display the specified time.
+
+        Args:
+            time (int | float): The time to display in seconds.
+        """
         self.time_label.setText(f"{format_time(time)} / {format_time(self.kfe_scene.timeline.get_time_length())}")
 
     def rewind(self):
+        """
+        Rewind the timeline to the beginning.
+        """
         activate_trigger(STOP_PLAYING, None)
         cursor = self.kfe_scene.get_cursor()
         cursor.set_pos_from_time(0)
@@ -129,6 +180,9 @@ class KeyframeEditorWidget(QWidget):
         self.kfe_scene.get_cursor().activate_preview_trigger()
 
     def fast_forward(self):
+        """
+        Fast-forward the timeline to the end.
+        """
         activate_trigger(STOP_PLAYING, None)
         cursor = self.kfe_scene.get_cursor()
         timeline_len = self.kfe_scene.timeline.get_time_length()
@@ -137,13 +191,16 @@ class KeyframeEditorWidget(QWidget):
         self.kfe_scene.get_cursor().activate_preview_trigger()
 
     def delete_keyframes(self):
+        """
+        Delete selected keyframes.
+        """
         keyframes = self.kfe_scene.get_selected_keyframes()
         for keyframe in keyframes:
             activate_trigger(KF_DELETE, keyframe.get_name())
 
     def recording_toggle(self):
         """
-        Recording toggle is called when the record button is clicked.
+        Toggle recording on or off.
         """
         if self.record_button.isChecked():
             # Clicking on the button flips the checked state automatically. We don't want automatic because we only
@@ -159,13 +216,29 @@ class KeyframeEditorWidget(QWidget):
             activate_trigger(STOP_RECORDING, None)
 
     def remove_handlers(self):
+        """
+        Remove all trigger handlers.
+        """
         for handler in self.handlers:
             remove_handler(handler)
         self.kfe_scene.remove_handlers()
 
 
 class KFEGraphicsView(QGraphicsView):
+    """
+    A custom QGraphicsView for the keyframe editor.
+
+    Attributes:
+        scroll_timer (QTimer): Timer for auto-scrolling functionality.
+        _is_dragging_cursor (bool): Flag indicating if the cursor is being dragged.
+    """
     def __init__(self, scene):
+        """
+        Initialize the KFEGraphicsView.
+
+        Args:
+            scene (QGraphicsScene): The scene to be displayed in the view.
+        """
         super().__init__(scene)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.scroll_timer = QTimer(self)
@@ -174,6 +247,12 @@ class KFEGraphicsView(QGraphicsView):
         self._is_dragging_cursor = False
 
     def sizeHint(self):
+        """
+        Provide a recommended size for the view based on the scene rectangle width and height.
+
+        Returns:
+            QSize: The recommended size for the view.
+        """
         # Get the current scene rectangle
         scene_rect = self.scene().sceneRect()
         width = min(700, int(scene_rect.width()))
@@ -181,6 +260,9 @@ class KFEGraphicsView(QGraphicsView):
         return QSize(width, height)
 
     def auto_scroll(self):
+        """
+        Automatically scroll the view if necessary when the cursor is near the side of the view.
+        """
         if not self._is_dragging_cursor:
             return
 
@@ -214,7 +296,25 @@ class KFEGraphicsView(QGraphicsView):
 
 
 class KeyframeEditorScene(QGraphicsScene):
+    """
+    A custom QGraphicsScene for the keyframe editor.
+
+    Attributes:
+        handlers (list): List of handlers for triggers.
+        timeline (Timeline): The timeline graphics item in the scene.
+        cursor (TimelineCursor): The cursor graphics item in the scene.
+        keyframes (dict): Dictionary of keyframe names to KeyframeItem objects.
+        selection_box (QGraphicsRectItem): The selection box for drag selection.
+        selection_start_pos (QPointF): The starting position of the selection box.
+    """
     def __init__(self, length, keyframes):
+        """
+        Initialize the KeyframeEditorScene.
+
+        Args:
+            length (int | float): Length of the timeline in seconds.
+            keyframes (list): List of animation.Keyframe objects.
+        """
         super().__init__()
         self.handlers = []
         self.timeline = Timeline(time_length=length)
@@ -234,16 +334,20 @@ class KeyframeEditorScene(QGraphicsScene):
         self.handlers.append(add_handler(MGR_KF_ADDED, lambda trigger_name, data: self.add_kf_item(data)))
         self.handlers.append(add_handler(MGR_KF_EDITED, lambda trigger_name, data: self.handle_keyframe_edit(data)))
         self.handlers.append(add_handler(MGR_KF_DELETED, lambda trigger_name, data: self.delete_kf_item(data)))
-        self.handlers.append(add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.animation_len_changed(data)))
+        self.handlers.append(
+            add_handler(MGR_LENGTH_CHANGED, lambda trigger_name, data: self.animation_len_changed(data)))
         self.handlers.append(add_handler(MGR_PREVIEWED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
-        self.handlers.append(add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
+        self.handlers.append(
+            add_handler(MGR_FRAME_PLAYED, lambda trigger_name, data: self.cursor.set_pos_from_time(data)))
 
         self.selectionChanged.connect(self.on_selection_changed)
 
     def add_kf_item(self, kf):
         """
         Add a keyframe item to the scene.
-        :param kf: animations.Keyframe object
+
+        Args:
+            kf (animation.Keyframe): The keyframe to add.
         """
         thumbnail_bytes = kf.get_thumbnail()
         pixmap = QPixmap()
@@ -261,8 +365,10 @@ class KeyframeEditorScene(QGraphicsScene):
 
     def handle_keyframe_edit(self, kf):
         """
-        Move a keyframe item to a new time.
-        :param kf: animations.Keyframe object
+        Handle editing of a keyframe and updating position of KeyframeItem. Expected to be called from a trigger.
+
+        Args:
+            kf (animation.Keyframe): The keyframe to edit.
         """
         keyframe_item = self.keyframes[kf.get_name()]
         if keyframe_item is None:
@@ -272,18 +378,29 @@ class KeyframeEditorScene(QGraphicsScene):
 
     def delete_kf_item(self, kf):
         """
-        Delete a keyframe item from the scene.
-        :param kf: animations.Keyframe object
+        Delete a keyframe item from the scene. Expected to be called from a trigger.
+
+        Args:
+            kf (str): The name of the keyframe to delete.
         """
         keyframe_item = self.keyframes.pop(kf.get_name())
         self.removeItem(keyframe_item)
 
     def update_scene_size(self):
+        """
+        Update the size of the scene based on the timeline length.
+        """
         margin = 10  # Margin in pixels on each side
         scene_width = self.timeline.get_pix_length() + 2 * margin  # Total width including margins
         self.setSceneRect(-margin, 0, scene_width, self.height())
 
     def animation_len_changed(self, length):
+        """
+        Handle changes to the animation length. Expected to be called from a trigger.
+
+        Args:
+            length (int | float): The new length of the animation in seconds.
+        """
         self.timeline.set_time_length(length)
         if self.cursor.x() > self.timeline.x() + self.timeline.get_pix_length():
             self.cursor.setX(self.timeline.x() + self.timeline.get_pix_length())
@@ -291,6 +408,13 @@ class KeyframeEditorScene(QGraphicsScene):
         self.update_scene_size()
 
     def mousePressEvent(self, event):
+        """
+        When the mouse is pressed on the scene handle moving the cursor, selecting a keyframe, or starting a drag
+        selection box.
+
+        Args:
+            event (QGraphicsSceneMouseEvent): The mouse press event.
+        """
         if event.button() == Qt.LeftButton:
             clicked_pos = event.scenePos()
             if not isinstance(self.itemAt(clicked_pos, QTransform()), KeyframeItem):
@@ -304,6 +428,12 @@ class KeyframeEditorScene(QGraphicsScene):
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        """
+        Handle mouse move events. Adjust the selection box and select any keyframes that intersect with the box.
+
+        Args:
+            event (QGraphicsSceneMouseEvent): The mouse move event.
+        """
         # Adjust the selection box if it has been started.
         if self.selection_box:
             current_pos = event.scenePos()
@@ -317,6 +447,12 @@ class KeyframeEditorScene(QGraphicsScene):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event, QGraphicsSceneMouseEvent=None):
+        """
+        Handle mouse release events. Trigger keyframe editing and end the selection box if it has been started.
+
+        Args:
+            event (QGraphicsSceneMouseEvent): The mouse release event.
+        """
         if event.button() == Qt.LeftButton:
             keyframes = self.get_selected_keyframes()
             for keyframes in keyframes:
@@ -328,6 +464,12 @@ class KeyframeEditorScene(QGraphicsScene):
         super().mouseReleaseEvent(event)
 
     def start_selection_box(self, pos):
+        """
+        Start the selection box for drag selection.
+
+        Args:
+            pos (QPointF): The starting position of the selection box.
+        """
         self.selection_start_pos = pos
         self.selection_box = QGraphicsRectItem(QRectF(pos, pos))
         self.selection_box.setPen(QPen(Qt.yellow, 1, Qt.DashLine))
@@ -335,11 +477,20 @@ class KeyframeEditorScene(QGraphicsScene):
         self.addItem(self.selection_box)
 
     def end_selection_box(self, pos):
+        """
+        End the selection box for drag selection.
+
+        Args:
+            pos (QPointF): The ending position of the selection box.
+        """
         self.removeItem(self.selection_box)
         self.selection_box = None
         self.selection_start_pos = None
 
     def on_selection_changed(self):
+        """
+        Handle changes to the selection. Make sure that keyframes display their time info when they are selected.
+        """
         selected_keyframes = self.get_selected_keyframes()
         for item in self.items():
             if isinstance(item, KeyframeItem):
@@ -349,10 +500,19 @@ class KeyframeEditorScene(QGraphicsScene):
                     item.show_info()
 
     def remove_handlers(self):
+        """
+        Remove all trigger handlers.
+        """
         for handler in self.handlers:
             remove_handler(handler)
 
     def get_selected_keyframes(self):
+        """
+        Get the selected graphical keyframes.
+
+        Returns:
+            list: List of selected KeyframeItem objects.
+        """
         selected_keyframes = []
         for item in self.selectedItems():
             if isinstance(item, KeyframeItem):
@@ -360,21 +520,42 @@ class KeyframeEditorScene(QGraphicsScene):
         return selected_keyframes
 
     def get_cursor(self):
+        """
+        Get the timeline cursor.
+
+        Returns:
+            TimelineCursor: The timeline cursor.
+        """
         return self.cursor
 
 
 class Timeline(QGraphicsItemGroup):
+    """
+    A QGraphicsItemGroup representing the timeline markings.
+
+    Attributes:
+        SCALE (int): Scale factor in pixels per second.
+        time_length (int | float): Length of the timeline in seconds.
+        pix_length (int): Length of the timeline in pixels.
+        interval (float): Interval between tick marks in seconds.
+        major_interval (float): Interval between major tick marks in seconds.
+        tick_length (int): Length of the tick marks in pixels.
+        major_tick_length (int): Length of the major tick marks in pixels.
+    """
+
     SCALE = 60  # Scale factor. Pixels per second.
 
     def __init__(self, time_length=5, interval=0.1, major_interval=1, tick_length=10, major_tick_length=20):
         """
-        :param time_length: Length of the timeline in seconds
-        :param interval: Interval between tick marks in seconds
-        :param major_interval: Interval between major tick marks in seconds
-        :param tick_length: Length of the tick marks in pixels
-        :param major_tick_length: Length of the major tick marks in pixels
+        Initialize the Timeline.
+
+        Args:
+            time_length (int | float): Length of the timeline in seconds.
+            interval (float): Interval between tick marks in seconds.
+            major_interval (float): Interval between major tick marks in seconds.
+            tick_length (int): Length of the tick marks in pixels.
+            major_tick_length (int): Length of the major tick marks in pixels.
         """
-        # TODO convert interval from pixels to time and do the same for major_interval
         super().__init__()
         self.time_length = time_length  # Length of the timeline in seconds
         # Length of the timeline in pixels. Can only be a whole number of pixels.
@@ -386,6 +567,10 @@ class Timeline(QGraphicsItemGroup):
         self.update_tick_marks()
 
     def update_tick_marks(self):
+        """
+        Update the tick marks on the timeline based on the current time length and tick interval fields.
+        """
+
         y_position = 60  # Top positions of the tick marks and labels on the y-axis
 
         pixel_interval = int(self.interval * self.SCALE)
@@ -414,15 +599,35 @@ class Timeline(QGraphicsItemGroup):
                 self.addToGroup(tick_mark)
 
     def get_pix_length(self):
+        """
+        Get the length of the timeline in pixels.
+
+        Returns:
+            int: The length of the timeline in pixels.
+        """
         return self.pix_length
 
     def get_pos_for_time(self, time):
+        """
+        Get the x position on the timeline for a given time.
+
+        Args:
+            time (int | float): The time in seconds.
+
+        Returns:
+            float: The x position on the timeline in pixels.
+        """
         return round(time * self.SCALE)
 
     def get_time_for_pos(self, pos_x):
         """
-        Convert a position on the timeline to a time in seconds.
-        :param pos_x: X position on the timeline
+        Get the time for a given position on the timeline.
+
+        Args:
+            pos_x (float): The position on the timeline in pixels.
+
+        Returns:
+            float: The time in seconds.
         """
         calc_time = pos_x / self.SCALE
         if calc_time < 0:
@@ -434,21 +639,49 @@ class Timeline(QGraphicsItemGroup):
 
     def set_time_length(self, length):
         """
-        Set the length of the timeline.
-        :param length: Length of the timeline in seconds
+        Set the time length, the pixel length and call for tick markings update.
+
+        Args:
+            length (int | float): The new length of the timeline in seconds.
         """
         self.time_length = length
         self.pix_length = round(self.time_length * self.SCALE)
         self.update_tick_marks()
 
     def get_time_length(self):
+        """
+        Get the length of the timeline.
+
+        Returns:
+            int | float: The length of the timeline in seconds.
+        """
         return self.time_length
 
 
 class KeyframeItem(QGraphicsPixmapItem):
+    """
+    A QGraphicsPixmapItem representing a keyframe in the timeline.
+
+    Attributes:
+        SIZE (int): The size of the keyframe item in pixels. The keyframe is square.
+        name (str): The name of the keyframe.
+        timeline (Timeline): Reference to the timeline object.
+        tick_mark (TickMarkItem): The tick mark item at the bottom of the keyframe.
+        hover_info (QGraphicsTextItem): The hover information text item.
+    """
+
     SIZE = 50
 
     def __init__(self, name, pixmap, position, timeline: Timeline):
+        """
+        Initialize the KeyframeItem.
+
+        Args:
+            name (str): The name of the keyframe.
+            pixmap (QPixmap): The pixmap representing the keyframe.
+            position (QPointF): The initial position of the keyframe.
+            timeline (Timeline): The timeline object.
+        """
         super().__init__(pixmap)
         self.setFlags(
             QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemIsSelectable)
@@ -474,15 +707,37 @@ class KeyframeItem(QGraphicsPixmapItem):
         self.setPos(position)
 
     def hoverEnterEvent(self, event):
+        """
+        Handle hover enter events to show hover info.
+
+        Args:
+            event (QGraphicsSceneHoverEvent): The hover event.
+        """
         self.show_info()  # Show hover info
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
+        """
+        Handle hover leave events to hide hover info.
+
+        Args:
+            event (QGraphicsSceneHoverEvent): The hover event.
+        """
         if not self.isSelected():
             self.hide_info()
         super().hoverLeaveEvent(event)
 
     def itemChange(self, change, value):
+        """
+        Handle item position changes, avoid keyframe collision, and update time labels.
+
+        Args:
+            change (QGraphicsItem.GraphicsItemChange): The type of change.
+            value (QVariant): The new value.
+
+        Returns:
+            QVariant: The processed value.
+        """
         if change == QGraphicsItem.ItemPositionChange:
             half_width = self.boundingRect().width() / 2
             if value.x() < self.timeline.x() - half_width:
@@ -504,12 +759,12 @@ class KeyframeItem(QGraphicsPixmapItem):
 
     def avoid_collision(self, new_x, old_x):
         """
-        Check if the new x position is taken by another keyframe item.
-        If it is, move this item over the blocking item in the direction that the drag was initiated.
-        :param new_x: New x position trying to move to
-        :param old_x: Old x position moving from
-        """
+        Avoid collision with other keyframe items.
 
+        Args:
+            new_x (float): The new x position.
+            old_x (float): The old x position.
+        """
         # First time this is called is from the constructor so this GraphicsItem has not been added to the scene yet.
         if self.scene() is None:
             return new_x
@@ -524,23 +779,50 @@ class KeyframeItem(QGraphicsPixmapItem):
         return new_x
 
     def trigger_for_edit(self):
+        """
+        Activate a trigger to signal that a keyframe needs an update.
+        """
         new_time = (float(self.timeline.get_time_for_pos(self.x() + self.boundingRect().width() / 2)))
         activate_trigger(KF_EDIT, (self.name, new_time))
 
     def show_info(self):
+        """
+        Show the hover info.
+        """
         self.hover_info.show()
 
     def hide_info(self):
+        """
+        Hide the hover info.
+        """
         self.hover_info.hide()
 
     def set_position_from_time(self, time):
+        """
+        Set the position of the keyframe based on the time.
+
+        Args:
+            time (int | float): The time in seconds.
+        """
         new_x = self.timeline.get_pos_for_time(time) - self.boundingRect().width() / 2
         self.setX(new_x)
 
     def set_info_time(self, time: int | float):
+        """
+        Set the hover info text based on the time.
+
+        Args:
+            time (int | float): The time in seconds.
+        """
         self.hover_info.setPlainText(format_time(time))
 
     def get_name(self):
+        """
+        Get the name of the keyframe.
+
+        Returns:
+            str: The name of the keyframe.
+        """
         return self.name
 
 

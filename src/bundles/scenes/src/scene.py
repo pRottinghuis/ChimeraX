@@ -35,14 +35,29 @@ import copy
 
 
 class Scene(State):
+    """
+    A Scene object is a snapshot of the current state of the session. Scenes save data from ViewState, NamedView,
+    and model display and color data. ViewState uses implemented snapshot methods for itself and all nested objects (
+    LightingState, MaterialState ect.) to store and restore data in a scene snapshot. NamedView is from
+    std_commands.view and has interpolation methods for camera, clipping planes, and model positions. NamedView also
+    is stored in scenes using snapshot methods. SceneColors and SceneVisibility are custom data storage containers
+    that store {model: data} mappings for color and display data. Scenes can restore session state using the stored
+    data. The class also has a static method to check if two scenes are interpolatable. Testing if scenes are
+    interpolate-able involves checking that {model: data} mappings in NamedView, SceneColors, and SceneVisibility
+    contain the same models. ViewState is a consistent instance across all sessions, so it is implied that ViewState
+    is interpolatable always.
+    """
 
     version = 0
 
     def __init__(self, session, *, scene_data=None):
         """
-        A Scene object saves a copy of the data that ViewState takes snapshot of, and also a NamedView object which
-        is a different type of state save used by chimerax.core.std_commands bundle for interpolating the camera
-        position, camera orientation, clipping planes and model positions.
+        Initialize a Scene object. If there is no snapshot scene data passed in then create a new scene from the session
+        state. Otherwise, load the scene from the snapshot data.
+
+        Args:
+            session: The current session.
+            scene_data (dict, optional): A dictionary of scene data to restore from snapshot method.
         """
         self.session = session
         if scene_data is None:
@@ -53,7 +68,7 @@ class Scene(State):
             self.scene_colors = SceneColors(session)
             self.scene_visibility = SceneVisibility(session)
         else:
-            # load a scene
+            # load a scene from snapshot
             self.main_view_data = scene_data['main_view_data']
             self.named_view = NamedView.restore_snapshot(session, scene_data['named_view'])
             self.scene_colors = SceneColors(session, color_data=scene_data['scene_colors'])
@@ -61,16 +76,29 @@ class Scene(State):
         return
 
     def restore_scene(self):
+        """
+        Restore the session state with the data in this scene.
+        """
+        # Restore the main view
         self.restore_main_view_data(self.main_view_data)
-        # Restore the camera position and orientation, clipping planes, and model positions using the NamedView
+        # Restore model positions. Even though the view state contains camera and clip plane positions, on a restore
+        # main view handles restoring the camera and clip plane positions.
         current_models = self.session.models.list()
         for model in current_models:
             if model in self.named_view.positions:
                 model.positions = self.named_view.positions[model]
+        # Restore colors and visibility
         self.scene_colors.restore_colors()
         self.scene_visibility.restore_visibility()
 
     def models_removed(self, models: [str]):
+        """
+        Remove models and associated scene data. This is designed to be attached to a handler for the models removed
+        trigger.
+
+        Args:
+            models (list of str): List of model identifiers to remove.
+        """
         for model in models:
             if model in self.named_view.positions:
                 del self.named_view.positions[model]
@@ -80,8 +108,21 @@ class Scene(State):
 
     def create_main_view_data(self):
         """
-        Created nested dictionary of the main view data using variation of the ViewState take_snapshot method.
+        Build a data tree to represent the data in ViewState. This data is used for saving snapshot of the scene.
+        This method first calls take_snapshot on the ViewState. By default, that snapshot will contain references to
+        objects but not the actual object data itself. This method steps into each of the nested objects in the
+        ViewState attributes and replaces the object references in the ViewState take snapshot with the raw data from
+        each object. Most attributes of the sessions main view are handled by one State manager class, so they can be
+        nested as raw data and converted back knowing that all the data is converted using one State manager. The
+        exception is clip planes attr (a list of clip planes) which are handled by two different State manager
+        classes. Therefore, the clip planes are stored as a dictionary with the key being the type of clip plane and
+        the value being the raw data of the clip plane so that when it is time to restore the scene, the correct
+        State manager can be used to restore the data entry.
+
+        Returns:
+            dict: A dictionary containing the main view data.
         """
+
         main_view = self.session.view
 
         view_state = self.session.snapshot_methods(main_view)
@@ -119,12 +160,16 @@ class Scene(State):
 
     def restore_main_view_data(self, data):
         """
-        Restore the main view data using ViewState. Convert all nested data back into objects before using ViewState
-        restore_snapshot.
+        Restore the main view data using ViewState's restore snapshot method to restore session state. ViewState
+        restore_snapshot method expects certain nested values to be objects, not raw data. This method converts all
+        the primitive data that represents nested objects formatted by the scene, back into the appropriate objects
+        using the appropriate state managers.
+
+        Args:
+            data (dict): A dictionary containing the main view data.
         """
 
-        # We need to be mindful that we convert all nested dicts back into the proper objects
-        # Data is a pass by reference to a dict we are storing in our scene. We should not overwrite it
+        # param:data is a pass by reference to a dict we are storing in our scene. We should not overwrite it
         restore_data = copy.deepcopy(data)
 
         restore_data['camera']['position'] = PlaceState.restore_snapshot(self.session, restore_data['camera']['position'])
@@ -165,9 +210,18 @@ class Scene(State):
     @staticmethod
     def interpolatable(scene1, scene2):
         """
-        Check if two scenes are interpolatable. Scenes are interpolatable if they have the same models in
-        their named_views.
+        Check if two scenes are interpolatable. Scenes are interpolatable if they have the same models in their
+        model:data mappings in NamedView, SceneColors, and SceneVisibility. View state is not included because view
+        state is model independent it is implied that there is always a View for each session.
+
+        Args:
+            scene1 (Scene): The first Scene instance.
+            scene2 (Scene): The second Scene instance.
+
+        Returns:
+            bool: True if the two scenes are interpolatable, False otherwise.
         """
+
         scene1_models = scene1.named_view.positions.keys()
         scene2_models = scene2.named_view.positions.keys()
         # Sets to disregard order
@@ -176,6 +230,7 @@ class Scene(State):
         scene_colors = SceneColors.interpolatable(scene1.get_colors(), scene2.get_colors())
         scene_visibility = SceneVisibility.interpolatable(scene1.get_visibility(), scene2.get_visibility())
 
+        # All three must be interpolatable
         return named_views and scene_colors and scene_visibility
 
     @staticmethod
@@ -183,7 +238,6 @@ class Scene(State):
         return Scene(session, scene_data=data)
 
     def take_snapshot(self, session, flags):
-
         return {
             'version': self.version,
             'main_view_data': self.main_view_data,
@@ -194,16 +248,37 @@ class Scene(State):
 
 
 class SceneColors(State):
+    """
+    Manages color data for session objects in ChimeraX.
 
+    This class stores and restores color data for atoms, bonds, pseudobonds, ribbons, and rings. It provides methods to
+    initialize color data, restore color states, handle model removal, and check if two SceneColors instances are
+    interpolatable. It also supports interpolation between two color states.
+
+    Attributes:
+        session: The current session.
+        atom_colors: A dictionary storing the color state of atoms.
+        bond_colors: A dictionary storing the color state of bonds.
+        halfbonds: A dictionary storing the halfbond drawing style state of bonds.
+        pseudobond_colors: A dictionary storing the color state of pseudobonds.
+        pbond_halfbonds: A dictionary storing the halfbond drawing style state of pseudobonds.
+        ribbon_colors: A dictionary storing the color state of ribbons.
+        ring_colors: A dictionary storing the color state of rings.
     """
-    SceneColors is a class that stores color data for session objects. See chimerax.atomic.molarray.py to see the c++
-    layer objects that this SceneColors interacts with. See chimerax.std_commands.color.py to see examples of changing
-    colors.
-    """
+
+    # TODO After testing consider making this class more concise.
 
     version = 0
 
     def __init__(self, session, color_data=None):
+        """
+        Initialize a SceneColors object. If color data is provided from a snapshot, it initializes the object with
+        that data. Otherwise, it initializes with current session values.
+
+        Args:
+            session: The current session.
+            color_data (dict, optional): A dictionary containing color data to initialize the object from snapshot.
+        """
         self.session = session
 
         if color_data:
@@ -235,11 +310,9 @@ class SceneColors(State):
 
     def initialize_colors(self):
         """
-        Initialize values for the color attributes. Collections from the c++ layer have a by_structure attribute which
-        maps models to their respective object pointers. For example atoms.by_structure is a dictionary mapping models
-        to their respective atoms objects. We can use this to store the colors for each model and then restore them
-        later using the same mapping. Keeping track of what colors belong to what model allow us to handle models being
-        closed.
+        Initialize values for the color attributes. Collections from the C++ layer have a by_structure attribute which
+        maps models to their respective object pointers. This method uses this mapping to store the colors for each
+        model and then restore them later.
         """
 
         objects = all_objects(self.session)
@@ -265,7 +338,7 @@ class SceneColors(State):
 
     def restore_colors(self):
         """
-        Move through by_structure for each object type and restore the colors.
+        Restore the color state of all session objects saved in this class.
         """
 
         objects = all_objects(self.session)
@@ -294,6 +367,14 @@ class SceneColors(State):
                 residues.ring_colors = self.ring_colors[model]
 
     def models_removed(self, models: [str]):
+        """
+        Remove models and associated color data when models are deleted. Designed to be attached to a handler for the
+        models removed trigger.
+
+        Args:
+            models (list of str): List of model identifiers to remove.
+        """
+
         for model in models:
             if model in self.atom_colors:
                 del self.atom_colors[model]
@@ -336,6 +417,18 @@ class SceneColors(State):
 
     @staticmethod
     def interpolatable(scene1_colors, scene2_colors):
+        """
+        Check if two SceneColors objects are interpolatable. Two SceneColors objects are interpolatable if they have the
+        same models in their model:data mappings.
+
+        Args:
+            scene1_colors (SceneColors): The first SceneColors instance.
+            scene2_colors (SceneColors): The second SceneColors instance.
+
+        Returns:
+            bool: True if the two SceneColors objects are interpolatable, False otherwise.
+        """
+
         if scene1_colors.atom_colors.keys() != scene2_colors.atom_colors.keys():
             return False
         if scene1_colors.bond_colors.keys() != scene2_colors.bond_colors.keys():
@@ -355,7 +448,15 @@ class SceneColors(State):
     @staticmethod
     def interpolate(session, scene1_colors, scene2_colors, fraction):
         """
-        Linear interpolation of two SceneColors objects.
+        Set the session state to an interpolated state between two SceneColors objects. Uses linear interpolation and
+        threshold interpolation.
+
+        Args:
+            session: The current session.
+            scene1_colors (SceneColors): The first SceneColors instance.
+            scene2_colors (SceneColors): The second SceneColors instance.
+            fraction (float): The weight of the second SceneColors instance. 0.0 is all scene1_colors, 1.0 is all
+                scene2_colors.
         """
 
         objects = all_objects(session)
@@ -418,30 +519,35 @@ class SceneColors(State):
         return SceneColors(session, color_data=data)
 
 
-def bool_ndarray_threshold_lerp(bool_arr1, bool_arr2, fraction):
-    """
-    Threshold lerp for bool numpy arrays. Fraction 0.5 is the threshold.
-    """
-    return bool_arr1 if fraction < 0.5 else bool_arr2
-
-
-def rgba_ndarray_lerp(rgba_arr1, rgba_arr2, fraction):
-    """
-    Linear interpolation of two RGBA numpy arrays. Fraction is the weight of the second array.
-    """
-    rgba_arr1_copy = np.copy(rgba_arr1)
-    rgba_arr2_copy = np.copy(rgba_arr2)
-    interpolated = rgba_arr1_copy * (1 - fraction) + rgba_arr2_copy * fraction
-    # Convert back to uint8. This is necessary because the interpolation may have created floats which is not supported
-    # by the colors attribute in the atoms object.
-    return interpolated.astype(np.uint8)
-
-
 class SceneVisibility(State):
+    """
+    Manages the visibility state of various session objects in ChimeraX.
+
+    This class stores and restores visibility data for models, atoms, bonds, pseudobonds, ribbons, and rings. It
+    provides methods to initialize visibility data, restore visibility states, handle model removal, and check if two
+    SceneVisibility instances are interpolatable. It also supports interpolation between two visibility states.
+
+    Attributes:
+        session: The current session.
+        model_visibility: A dictionary storing the visibility state of models.
+        atom_displays: A dictionary storing the display state of atoms.
+        bond_displays: A dictionary storing the display state of bonds.
+        pseudobond_displays: A dictionary storing the display state of pseudobonds.
+        ribbon_displays: A dictionary storing the display state of ribbons.
+        ring_displays: A dictionary storing the display state of rings.
+    """
 
     version = 0
 
     def __init__(self, session, *, visibility_data=None):
+        """
+        Initialize a SceneVisibility object. If visibility snapshot data is provided, it initializes the object with
+        that data. Otherwise, it initializes with current session values.
+
+        Args:
+            session: The current session. visibility_data (dict, optional): A dictionary from take_snapshot
+            containing visibility data to initialize the object.
+        """
         self.session = session
         if visibility_data:
             self.model_visibility = visibility_data['model_visibility']
@@ -461,6 +567,9 @@ class SceneVisibility(State):
         return
 
     def initialize_visibility(self):
+        """
+        Initialize visibility data for all session objects from current session.
+        """
         objects = all_objects(self.session)
 
         for model in objects.models:
@@ -478,6 +587,9 @@ class SceneVisibility(State):
         return
 
     def restore_visibility(self):
+        """
+        Restore the visibility state of all session objects saved in this class.
+        """
         objects = all_objects(self.session)
 
         for model in objects.models:
@@ -499,6 +611,13 @@ class SceneVisibility(State):
                 residues.ring_displays = self.ring_displays[structure]
 
     def models_removed(self, models: [str]):
+        """
+        Remove visibility data for specified models. Designed to be attached to a handler for the models removed
+        trigger.
+
+        Args:
+            models (list of str): List of model identifiers to remove.
+        """
         for model in models:
             if model in self.model_visibility:
                 del self.model_visibility[model]
@@ -533,6 +652,17 @@ class SceneVisibility(State):
 
     @staticmethod
     def interpolatable(scene1_visibility, scene2_visibility):
+        """
+        Check if two SceneVisibility instances are interpolatable. Two SceneVisibility instances are interpolatable if
+        they have the same models in their model:data mappings.
+
+        Args:
+            scene1_visibility (SceneVisibility): The first SceneVisibility instance.
+            scene2_visibility (SceneVisibility): The second SceneVisibility instance.
+
+        Returns:
+            bool: True if the two SceneVisibility instances are interpolatable, False otherwise.
+        """
         if scene1_visibility.model_visibility.keys() != scene2_visibility.model_visibility.keys():
             return False
         if scene1_visibility.atom_displays.keys() != scene2_visibility.atom_displays.keys():
@@ -549,6 +679,16 @@ class SceneVisibility(State):
 
     @staticmethod
     def interpolate(session, scene1_visibility, scene2_visibility, fraction):
+        """
+        Set the session state to an interpolated state between two SceneVisibility instances.
+
+        Args:
+            session: The current session.
+            scene1_visibility (SceneVisibility): The first SceneVisibility instance.
+            scene2_visibility (SceneVisibility): The second SceneVisibility instance.
+            fraction (float): The weight of the second SceneVisibility instance. 0.0 is all scene1_visibility, 1.0 is
+            all scene2_visibility.
+        """
         objects = all_objects(session)
 
         model_visibility_1 = scene1_visibility.get_model_visibility()
@@ -601,3 +741,22 @@ class SceneVisibility(State):
         if SceneVisibility.version != data['version']:
             raise ValueError("Cannot restore SceneVisibility data with version %d" % data['version'])
         return SceneVisibility(session, visibility_data=data)
+
+
+def bool_ndarray_threshold_lerp(bool_arr1, bool_arr2, fraction):
+    """
+    Threshold lerp for bool numpy arrays. Fraction 0.5 is the threshold.
+    """
+    return bool_arr1 if fraction < 0.5 else bool_arr2
+
+
+def rgba_ndarray_lerp(rgba_arr1, rgba_arr2, fraction):
+    """
+    Linear interpolation of two RGBA numpy arrays. Fraction is the weight of the second array.
+    """
+    rgba_arr1_copy = np.copy(rgba_arr1)
+    rgba_arr2_copy = np.copy(rgba_arr2)
+    interpolated = rgba_arr1_copy * (1 - fraction) + rgba_arr2_copy * fraction
+    # Convert back to uint8. This is necessary because the interpolation may have created floats which is not supported
+    # by the colors attribute in the atoms object.
+    return interpolated.astype(np.uint8)

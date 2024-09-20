@@ -17,9 +17,9 @@ will be displayed without the ChimeraX- prefix.
   <!-- Synopsis is a one-line description
        Description is a full multi-line description -->
   <Synopsis>Build, edit, and record animations</Synopsis>
-  <Description>
-    The Animations bundle provides tools for building, editing, and recording animations.
-  </Description>
+  <Description> The Animations bundle offers comprehensive tools for creating, modifying, and capturing animations
+    within the ChimeraX application. It enables users to build a keyframe animation, manage timelines, preview frames,
+    and record animations to files, enhancing the dynamic visualization capabilities of ChimeraX.  </Description>
 
   <!-- Categories is a list where this bundle should appear -->
   <Categories>
