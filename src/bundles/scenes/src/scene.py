@@ -24,7 +24,8 @@ import io
 # === UCSF ChimeraX Copyright ===
 
 from chimerax.core.state import State
-from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState, CameraClipPlaneState
+from chimerax.graphics.gsession import (ViewState, CameraState, LightingState, MaterialState, CameraClipPlaneState,
+                                        SceneClipPlaneState)
 from chimerax.geometry.psession import PlaceState
 from chimerax.std_commands.view import NamedView
 import numpy as np
@@ -99,13 +100,18 @@ class Scene(State):
         v_material = main_view.material
         data['material'] = MaterialState.take_snapshot(v_material, self.session, State.SCENE)
 
-        # 'clip_planes in data is an array of clip planes objects. For now assume they are all CameraClipPlanes. We
-        # need to convert them into raw data before storing them in the scene. Replace the 'clip_planes' key in data
-        # with the raw data.
+        # 'clip_planes in data is an array of clip planes objects. The clip plane objects can be either scene or camera
+        # clip planes. Need to convert them into raw data before storing them in the scene, but also need to keep track
+        # of which state class the data was derived from, so it can be restored. Replace the 'clip_planes' key in data
+        # with the raw data map.
         clip_planes = data['clip_planes']
-        clip_planes_data = []
+        clip_planes_data = {}
         for clip_pane in clip_planes:
-            clip_planes_data.append(CameraClipPlaneState.take_snapshot(clip_pane, self.session, State.SCENE))
+            cp_state_manager = self.session.snapshot_methods(clip_pane)
+            if cp_state_manager == CameraClipPlaneState:
+                clip_planes_data["camera"] = CameraClipPlaneState.take_snapshot(clip_pane, self.session, State.SCENE)
+            if cp_state_manager == SceneClipPlaneState:
+                clip_planes_data["scene"] = SceneClipPlaneState.take_snapshot(clip_pane, self.session, State.SCENE)
 
         data['clip_planes'] = clip_planes_data
 
@@ -132,8 +138,12 @@ class Scene(State):
         # form. We need to convert them back into CameraClipPlane objects before restoring the main view data.
         clip_planes_data = restore_data['clip_planes']
         restored_clip_planes = []
-        for clip_plane_data in clip_planes_data:
-            restored_clip_planes.append(CameraClipPlaneState.restore_snapshot(self.session, clip_plane_data))
+        for clip_plane_type, clip_plane_data in clip_planes_data.items():
+            if clip_plane_type == "camera":
+                restored_clip_planes.append(CameraClipPlaneState.restore_snapshot(self.session, clip_plane_data))
+            # TODO find a way to test scene clip planes
+            if clip_plane_type == "scene":
+                restored_clip_planes.append(SceneClipPlaneState.restore_snapshot(self.session, clip_plane_data))
 
         restore_data['clip_planes'] = restored_clip_planes
 
