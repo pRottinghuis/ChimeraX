@@ -24,7 +24,7 @@ import io
 # === UCSF ChimeraX Copyright ===
 
 from chimerax.core.state import State
-from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState
+from chimerax.graphics.gsession import ViewState, CameraState, LightingState, MaterialState, CameraClipPlaneState
 from chimerax.geometry.psession import PlaceState
 from chimerax.std_commands.view import NamedView
 import numpy as np
@@ -99,6 +99,16 @@ class Scene(State):
         v_material = main_view.material
         data['material'] = MaterialState.take_snapshot(v_material, self.session, State.SCENE)
 
+        # 'clip_planes in data is an array of clip planes objects. For now assume they are all CameraClipPlanes. We
+        # need to convert them into raw data before storing them in the scene. Replace the 'clip_planes' key in data
+        # with the raw data.
+        clip_planes = data['clip_planes']
+        clip_planes_data = []
+        for clip_pane in clip_planes:
+            clip_planes_data.append(CameraClipPlaneState.take_snapshot(clip_pane, self.session, State.SCENE))
+
+        data['clip_planes'] = clip_planes_data
+
         return data
 
     def restore_main_view_data(self, data):
@@ -117,6 +127,15 @@ class Scene(State):
         restore_data['lighting'] = LightingState.restore_snapshot(self.session, restore_data['lighting'])
 
         restore_data['material'] = MaterialState.restore_snapshot(self.session, restore_data['material'])
+
+        # Restore the clip planes. The 'clip_planes' key in restore_data is an array of clip planes objects in snapshot
+        # form. We need to convert them back into CameraClipPlane objects before restoring the main view data.
+        clip_planes_data = restore_data['clip_planes']
+        restored_clip_planes = []
+        for clip_plane_data in clip_planes_data:
+            restored_clip_planes.append(CameraClipPlaneState.restore_snapshot(self.session, clip_plane_data))
+
+        restore_data['clip_planes'] = restored_clip_planes
 
         # The ViewState by default skips resetting the camera because session.restore_options.get('restore camera')
         # is None. We set it to True, let the camera be restored, and then delete the option, so it reads None again in
