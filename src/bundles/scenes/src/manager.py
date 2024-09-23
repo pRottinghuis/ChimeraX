@@ -27,6 +27,7 @@ from chimerax.graphics.gsession import ViewState
 from .scene import Scene, SceneColors, SceneVisibility
 from chimerax.core.triggerset import TriggerSet
 from chimerax.core.models import REMOVE_MODELS
+from chimerax.std_commands.view import _interpolate_views, _model_motion_centers
 
 
 class SceneManager(StateManager):
@@ -122,7 +123,6 @@ class SceneManager(StateManager):
             )
 
             # Use NamedViews to interpolate camera, clip planes, and model positions. See _InterpolateViews
-            from chimerax.std_commands.view import _interpolate_views, _model_motion_centers
             view1 = scene1.named_view
             view2 = scene2.named_view
             centers = _model_motion_centers(view1.positions, view2.positions)

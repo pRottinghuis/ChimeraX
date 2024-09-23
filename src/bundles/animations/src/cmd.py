@@ -24,8 +24,6 @@ from .animation import Animation
 from chimerax.movie.movie import RESET_CLEAR, RESET_KEEP, RESET_NONE
 from chimerax.movie.formats import formats, qualities, image_formats
 
-from typing import Optional
-
 
 def register_command(command_name, logger):
     """

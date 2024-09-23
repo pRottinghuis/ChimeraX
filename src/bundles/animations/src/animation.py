@@ -16,6 +16,8 @@ from chimerax.core.triggerset import TriggerSet
 from chimerax.core.errors import UserError
 from .triggers import MGR_KF_ADDED, MGR_KF_DELETED, MGR_KF_EDITED, MGR_LENGTH_CHANGED, MGR_PREVIEWED, activate_trigger, \
     MGR_FRAME_PLAYED, MGR_RECORDING_START, MGR_RECORDING_STOP
+from chimerax.movie.moviecmd import movie_encode
+from chimerax.movie.moviecmd import movie_record
 
 import io
 
@@ -385,7 +387,6 @@ class Animation(StateManager):
         # Stop a movie if one is already recording
         if hasattr(self.session, 'movie') and self.session.movie is not None:
             run(self.session, "movie reset", log=False)
-        from chimerax.movie.moviecmd import movie_record
         # If we want to ever show commands in the log this needs to be converted
         movie_record(self.session, **self._record_data)
         self._is_recording = True
@@ -517,7 +518,6 @@ class Animation(StateManager):
         """
         if self._is_recording:
             run(self.session, "movie stop", log=False)
-            from chimerax.movie.moviecmd import movie_encode
             # If this command ever wants to be seen in the log would have to unpack the encode_data dict and pass it
             try:
                 movie_encode(self.session, **self._encode_data)
