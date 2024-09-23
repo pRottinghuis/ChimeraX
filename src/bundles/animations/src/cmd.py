@@ -378,8 +378,8 @@ def remove_time(session, target_time: int | float, amount_for_removal: int | flo
 
 remove_time_desc = CmdDesc(
     required=[
-        ("start_time", FloatArg),
-        ("end_time", FloatArg)
+        ("target_time", FloatArg),
+        ("amount_for_removal", FloatArg)
     ],
     synopsis="Remove a segment of time from the timeline. Shift keyframes accordingly."
 )
