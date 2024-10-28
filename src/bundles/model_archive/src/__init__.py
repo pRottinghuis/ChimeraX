@@ -1,4 +1,4 @@
-# vim: set expandtab ts=4 sw=4:
+# vim: set expandtab shiftwidth=4 softtabstop=4:
 
 # === UCSF ChimeraX Copyright ===
 # Copyright 2022 Regents of the University of California. All rights reserved.
@@ -22,42 +22,34 @@
 # copies, of the software or any revisions or derivations thereof.
 # === UCSF ChimeraX Copyright ===
 
+# -----------------------------------------------------------------------------
+#
 from chimerax.core.toolshed import BundleAPI
 
-class _DeepMutationalScanAPI(BundleAPI):
-
+class _ModelArchiveBundle(BundleAPI):
+            
     @staticmethod
     def register_command(command_name, logger):
-        # 'register_command' is called by the toolshed on start up
-        from . import dms_label
-        dms_label.register_command(logger)
-        from . import dms_attribute
-        dms_attribute.register_command(logger)
-        from . import dms_scatter_plot
-        dms_scatter_plot.register_command(logger)
-        from . import dms_stats
-        dms_stats.register_command(logger)
-        from . import dms_histogram
-        dms_histogram.register_command(logger)
-        from . import dms_umap
-        dms_umap.register_command(logger)
+        # 'register_command' is lazily called when the command is referenced
+        if command_name == 'modelcif pae':
+            from . import modelcif_pae
+            modelcif_pae.register_command(logger)
 
     @staticmethod
     def run_provider(session, name, mgr):
         if mgr == session.open_command:
-            if name == 'Deep mutational scan':
-                from chimerax.open_command import OpenerInfo
-                class DeepMutationalScanInfo(OpenerInfo):
-                    def open(self, session, path, file_name, **kw):
-                        from .dms_data import open_deep_mutational_scan_csv
-                        dms_data, message = open_deep_mutational_scan_csv(session, path, **kw)
-                        return [], message
-
+            if name == 'modelarchive':
+                from chimerax.open_command import FetcherInfo
+                class MAInfo(FetcherInfo):
+                    def fetch(self, session, ident, format_name, ignore_cache, **kw):
+                        from .ma_fetch import fetch_model_archive
+                        return fetch_model_archive(session, ident, ignore_cache=ignore_cache, **kw)
                     @property
-                    def open_args(self):
-                        from chimerax.atomic import ChainArg
-                        return {'Chain': ChainArg}
+                    def fetch_args(self):
+                        from chimerax.core.commands import EnumOf, BoolArg
+                        return {
+                            'pae': BoolArg,
+                        }
+                return MAInfo()
 
-                return DeepMutationalScanInfo()
-
-bundle_api = _DeepMutationalScanAPI()
+bundle_api = _ModelArchiveBundle()

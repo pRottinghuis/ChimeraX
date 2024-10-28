@@ -22,7 +22,8 @@
 # copies, of the software or any revisions or derivations thereof.
 # === UCSF ChimeraX Copyright ===
 
-class SimilarStructures:
+from chimerax.core.state import State  # For session saving
+class SimilarStructures(State):
     def __init__(self, hits, query_chain, program = '', database = '',
                  trim = True, alignment_cutoff_distance = 2.0):
         self.hits = hits
@@ -453,14 +454,14 @@ class SimilarStructures:
 
         db_id = hit.get('database_id')
         if in_file_history:
-            from_db = 'from alphafold' if hit['database'] == 'afdb' else ''
+            from_db = 'from alphafold' if hit['database'].startswith('afdb') else ''
             open_cmd = f'open {db_id} {from_db}'
             if not log:
                 open_cmd += ' logInfo false'
             from chimerax.core.commands import run
             structures = run(session, open_cmd, log = log)
         else:
-            kw = {'from_database': 'alphafold'} if hit['database'] == 'afdb' else {}
+            kw = {'from_database': 'alphafold'} if hit['database'].startswith('afdb') else {}
             structures, status = session.open_command.open_data(db_id, log_info = log, **kw)
             session.models.add(structures)
 
@@ -526,8 +527,8 @@ class SimilarStructures:
         hit['aligned_residue_offsets'] = hro
         hit['query_residue_offsets'] = qro
 
-from chimerax.core.state import State
-class SimilarStructuresManager(State):
+from chimerax.core.state import StateManager
+class SimilarStructuresManager(StateManager):
     def __init__(self):
         self._name_to_simstruct = {}
     def add_similar_structures(self, results, name = None):
@@ -573,6 +574,8 @@ class SimilarStructuresManager(State):
         ssm = cls()
         ssm._name_to_simstruct = data['name_to_simstruct']
         return ssm
+    def reset_state(self, session):
+        self._name_to_simstruct.clear()
 
 def similar_structures_manager(session, create = True):
     ssm = getattr(session, 'similar_structures', None)
